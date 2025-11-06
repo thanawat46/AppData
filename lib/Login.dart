@@ -45,7 +45,7 @@ class _LoginState extends State<LoginPage> {
     return MaterialApp(
       home: Scaffold(
         body: Container(
-            width: double.infinity,
+          width: double.infinity,
             height: double.infinity,
             color: const Color(0xFFDD1E36),
             child: SingleChildScrollView(
@@ -82,7 +82,7 @@ class _LoginState extends State<LoginPage> {
                         borderRadius: BorderRadius.circular(20.0),
                       ),
                       child: Padding(
-                          padding: const EdgeInsets.all(20.0),
+                        padding: const EdgeInsets.all(20.0),
                           child: Column(
                             children: [
                               const Text("ระบบข้อมูลชาวไร่\nโรงงานน้ำตาลพิมาย",
