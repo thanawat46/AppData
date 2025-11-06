@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import 'HomePage.dart';
+import 'ListView_Choice.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -35,7 +34,7 @@ class _LoginState extends State<LoginPage> {
     if (isQuotaValid && isIdCardValid) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => Homepage()),
+        MaterialPageRoute(builder: (context) => ListView_Choice()),
       );
     }
   }
@@ -46,8 +45,8 @@ class _LoginState extends State<LoginPage> {
       home: Scaffold(
         body: Container(
           width: double.infinity,
-            height: double.infinity,
-            color: const Color(0xFFDD1E36),
+          height: double.infinity,
+          color: const Color(0xFFDD1E36),
             child: SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.only(
