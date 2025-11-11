@@ -60,7 +60,8 @@ class _IncomeState extends State<Income_year> {
   }
 
   Future<List<CaneData>> fetchData() async {
-    final response = await http.get(Uri.parse('http://110.164.149.104:91/crapi/transectionview/$ID'));
+    final response = await http
+        .get(Uri.parse('http://110.164.149.104:91/crapi/transectionview/$ID'));
 
     if (response.statusCode == 200) {
       final jsonResponse = json.decode(response.body);
@@ -69,10 +70,11 @@ class _IncomeState extends State<Income_year> {
         throw Exception('ไม่พบข้อมูล กรุณาลองใหม่');
       }
 
-      final List<dynamic> dataList = jsonResponse['data'] ?? []; 
+      final List<dynamic> dataList = jsonResponse['data'] ?? [];
       return dataList.map((data) => CaneData.fromJson(data)).toList();
     } else {
-      throw Exception('ไม่สามารถโหลดข้อมูลจาก API : Status code: ${response.statusCode}');
+      throw Exception(
+          'ไม่สามารถโหลดข้อมูลจาก API : Status code: ${response.statusCode}');
     }
   }
 
@@ -101,18 +103,28 @@ class _IncomeState extends State<Income_year> {
           future: futureData,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: Colors.white));
+              return const Center(
+                  child: CircularProgressIndicator(color: Colors.white));
             } else if (snapshot.hasError) {
-              String errorMessage = snapshot.error.toString().replaceFirst("Exception: ", "");
-              return Center(child: Text(errorMessage, style: const TextStyle(color: Colors.white, fontSize: 18)));
+              String errorMessage =
+                  snapshot.error.toString().replaceFirst("Exception: ", "");
+              return Center(
+                  child: Text(errorMessage,
+                      style:
+                          const TextStyle(color: Colors.white, fontSize: 18)));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text("ไม่พบข้อมูล", style: const TextStyle(color: Colors.white)));
+              return const Center(
+                  child: Text("ไม่พบข้อมูล",
+                      style: const TextStyle(color: Colors.white)));
             } else {
               final data = snapshot.data!;
               final itemCount = data.length;
-              final totalTons = data.fold<double>(0, (sum, item) => sum + item.itemQty);
-              final totalIncome = data.fold<double>(0, (sum, item) => sum + item.priceItem);
-              final totalCCSxQty = data.fold<double>(0, (sum, item) => sum + (item.ccs * item.itemQty));
+              final totalTons =
+                  data.fold<double>(0, (sum, item) => sum + item.itemQty);
+              final totalIncome =
+                  data.fold<double>(0, (sum, item) => sum + item.priceItem);
+              final totalCCSxQty = data.fold<double>(
+                  0, (sum, item) => sum + (item.ccs * item.itemQty));
               final averageCCS = totalTons > 0 ? totalCCSxQty / totalTons : 0.0;
 
               return RefreshIndicator(
@@ -127,7 +139,8 @@ class _IncomeState extends State<Income_year> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 24),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(10),
@@ -142,7 +155,8 @@ class _IncomeState extends State<Income_year> {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 24),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(10),
@@ -160,14 +174,17 @@ class _IncomeState extends State<Income_year> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16,),
+                    const SizedBox(
+                      height: 16,
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 24),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(10),
@@ -188,7 +205,7 @@ class _IncomeState extends State<Income_year> {
                     Expanded(
                       child: Container(
                         margin: const EdgeInsets.only(top: 30.0),
-                        clipBehavior: Clip.antiAlias, 
+                        clipBehavior: Clip.antiAlias,
                         decoration: const BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.only(
@@ -201,17 +218,53 @@ class _IncomeState extends State<Income_year> {
                           child: SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: DataTable(
-                              showCheckboxColumn: false, 
-                              headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
+                              showCheckboxColumn: false,
+                              headingRowColor:
+                                  MaterialStateProperty.all(Colors.grey[100]),
                               columnSpacing: 20,
                               columns: const [
-                                DataColumn(label: Center(child: Text('วันเวลา-โรง', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)))),
-                                DataColumn(label: Center(child: Text('ทะเบียนรถ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)))),
-                                DataColumn(label: Center(child: Text('อ้อย', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)))),
-                                DataColumn(label: Center(child: Text('นน.(ต้น)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)))),
-                                DataColumn(label: Center(child: Text('CCS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)))),
-                                DataColumn(label: Center(child: Text('ราคาตัน', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)))),
-                                DataColumn(label: Center(child: Text('รายได้เบื้องต้น', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)))),
+                                DataColumn(
+                                    label: Center(
+                                        child: Text('วันเวลา-โรง',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 15)))),
+                                DataColumn(
+                                    label: Center(
+                                        child: Text('ทะเบียนรถ',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 15)))),
+                                DataColumn(
+                                    label: Center(
+                                        child: Text('อ้อย',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 15)))),
+                                DataColumn(
+                                    label: Center(
+                                        child: Text('นน.(ต้น)',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 15)))),
+                                DataColumn(
+                                    label: Center(
+                                        child: Text('CCS',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 15)))),
+                                DataColumn(
+                                    label: Center(
+                                        child: Text('ราคาตัน',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 15)))),
+                                DataColumn(
+                                    label: Center(
+                                        child: Text('รายได้เบื้องต้น',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 15)))),
                               ],
                               rows: data.asMap().entries.map((entry) {
                                 final int index = entry.key;
@@ -220,17 +273,45 @@ class _IncomeState extends State<Income_year> {
                                   selected: _selectedIndex == index,
                                   onSelectChanged: (bool? selected) {
                                     setState(() {
-                                      _selectedIndex = (selected ?? false) ? index : null;
+                                      _selectedIndex =
+                                          (selected ?? false) ? index : null;
                                     });
                                   },
                                   cells: [
-                                    DataCell(Center(child: Text(item.dayOutS, style: const TextStyle(fontSize: 16)))),
-                                    DataCell(Center(child: Text(item.carId, style: const TextStyle(fontSize: 16)))),
-                                    DataCell(Center(child: Text(item.descr, style: const TextStyle(fontSize: 16)))),
-                                    DataCell(Center(child: Text(numberFormatter.format(item.itemQty), style: const TextStyle(fontSize: 16)))),
-                                    DataCell(Center(child: Text(item.ccs.toStringAsFixed(2), style: const TextStyle(fontSize: 16)))),
-                                    DataCell(Center(child: Text(numberFormatter.format(item.ccsPriceTon), style: const TextStyle(fontSize: 16)))),
-                                    DataCell(Center(child: Text(numberFormatter.format(item.priceItem), style: const TextStyle(fontSize: 16)))),
+                                    DataCell(Center(
+                                        child: Text(item.dayOutS,
+                                            style: const TextStyle(
+                                                fontSize: 16)))),
+                                    DataCell(Center(
+                                        child: Text(item.carId,
+                                            style: const TextStyle(
+                                                fontSize: 16)))),
+                                    DataCell(Center(
+                                        child: Text(item.descr,
+                                            style: const TextStyle(
+                                                fontSize: 16)))),
+                                    DataCell(Center(
+                                        child: Text(
+                                            numberFormatter
+                                                .format(item.itemQty),
+                                            style: const TextStyle(
+                                                fontSize: 16)))),
+                                    DataCell(Center(
+                                        child: Text(item.ccs.toStringAsFixed(2),
+                                            style: const TextStyle(
+                                                fontSize: 16)))),
+                                    DataCell(Center(
+                                        child: Text(
+                                            numberFormatter
+                                                .format(item.ccsPriceTon),
+                                            style: const TextStyle(
+                                                fontSize: 16)))),
+                                    DataCell(Center(
+                                        child: Text(
+                                            numberFormatter
+                                                .format(item.priceItem),
+                                            style: const TextStyle(
+                                                fontSize: 16)))),
                                   ],
                                 );
                               }).toList(),

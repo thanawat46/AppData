@@ -17,7 +17,8 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text("ยินดีต้อนรับ นาย ธนวัฒน์ หนองงู",
+        title: const Text(
+          "ยินดีต้อนรับ นาย ธนวัฒน์ หนองงู",
           style: TextStyle(
             color: Colors.white,
           ),
@@ -59,18 +60,21 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10,),
-                      const Text("บริษัท อุตสาหกรรมโคราช จำกัด \n (โรงน้ำตาลพิมาย)",
-                          textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 15
-                        ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      const Text(
+                        "บริษัท อุตสาหกรรมโคราช จำกัด \n (โรงน้ำตาลพิมาย)",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 15),
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 20,),
+              const SizedBox(
+                height: 20,
+              ),
               Expanded(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20.0),
@@ -95,7 +99,8 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                                       height: 50,
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFDD1E36),
-                                        borderRadius: BorderRadius.circular(20.0),
+                                        borderRadius:
+                                            BorderRadius.circular(20.0),
                                       ),
                                       child: const Center(
                                         child: Text(
@@ -107,42 +112,55 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 50,),
-                                    const Text("รอบที่ 11 คิว 501",
+                                    const SizedBox(
+                                      width: 50,
+                                    ),
+                                    const Text(
+                                      "รอบที่ 11 คิว 501",
                                       style: TextStyle(
                                         fontSize: 18,
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 50,),
+                                const SizedBox(
+                                  height: 50,
+                                ),
                                 const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text("ถึงคิวที่ 550",
+                                    Text(
+                                      "ถึงคิวที่ 550",
                                       style: TextStyle(
                                         fontSize: 18,
                                       ),
                                     ),
                                     SizedBox(width: 50),
-                                    Text("จากทั้งหมด 1100 คิว",
+                                    Text(
+                                      "จากทั้งหมด 1100 คิว",
                                       style: TextStyle(
                                         fontSize: 18,
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 30,),
+                                const SizedBox(
+                                  height: 30,
+                                ),
                                 const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text("ตกคิวรับได้ คิวที่ 451",
+                                    Text(
+                                      "ตกคิวรับได้ คิวที่ 451",
                                       style: TextStyle(
                                         fontSize: 18,
                                       ),
                                     ),
-                                    SizedBox(width: 50,),
-                                    Text("ถึงคิวที่ 500",
+                                    SizedBox(
+                                      width: 50,
+                                    ),
+                                    Text(
+                                      "ถึงคิวที่ 500",
                                       style: TextStyle(
                                         fontSize: 18,
                                       ),
@@ -151,7 +169,8 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                                 ),
                                 const SizedBox(height: 30),
                                 const Center(
-                                  child: Text("ประกาศแล้ว 5817:22 ชั่วโมง",
+                                  child: Text(
+                                    "ประกาศแล้ว 5817:22 ชั่วโมง",
                                     style: TextStyle(
                                       fontSize: 18,
                                     ),
@@ -161,7 +180,9 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20,),
+                        const SizedBox(
+                          height: 20,
+                        ),
                         Container(
                           width: double.infinity,
                           height: 300,
@@ -180,7 +201,8 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                                       height: 50,
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFDD1E36),
-                                        borderRadius: BorderRadius.circular(20.0),
+                                        borderRadius:
+                                            BorderRadius.circular(20.0),
                                       ),
                                       child: const Center(
                                         child: Text(
@@ -192,42 +214,57 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 50,),
-                                    const Text("รอบที่ 38 คิวที่ 801",
+                                    const SizedBox(
+                                      width: 50,
+                                    ),
+                                    const Text(
+                                      "รอบที่ 38 คิวที่ 801",
                                       style: TextStyle(
                                         fontSize: 18,
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 50,),
+                                const SizedBox(
+                                  height: 50,
+                                ),
                                 const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text("ถึงคิวที่ 850",
+                                    Text(
+                                      "ถึงคิวที่ 850",
                                       style: TextStyle(
                                         fontSize: 18,
                                       ),
                                     ),
-                                    SizedBox(width: 50,),
-                                    Text("จากทั้งหมด 2000 คิว",
+                                    SizedBox(
+                                      width: 50,
+                                    ),
+                                    Text(
+                                      "จากทั้งหมด 2000 คิว",
                                       style: TextStyle(
                                         fontSize: 18,
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 30,),
+                                const SizedBox(
+                                  height: 30,
+                                ),
                                 const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text("ตกคิวรับได้ คิวที่ 751",
+                                    Text(
+                                      "ตกคิวรับได้ คิวที่ 751",
                                       style: TextStyle(
                                         fontSize: 18,
                                       ),
                                     ),
-                                    SizedBox(width: 50,),
-                                    Text("ถึงคิวที่ 800",
+                                    SizedBox(
+                                      width: 50,
+                                    ),
+                                    Text(
+                                      "ถึงคิวที่ 800",
                                       style: TextStyle(
                                         fontSize: 18,
                                       ),
@@ -236,7 +273,8 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                                 ),
                                 const SizedBox(height: 30),
                                 const Center(
-                                  child: Text("ประกาศแล้ว 5837:00 ชั่วโมง",
+                                  child: Text(
+                                    "ประกาศแล้ว 5837:00 ชั่วโมง",
                                     style: TextStyle(
                                       fontSize: 18,
                                     ),
@@ -246,7 +284,9 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20,),
+                        const SizedBox(
+                          height: 20,
+                        ),
                         Container(
                           width: double.infinity,
                           height: 300,
@@ -265,7 +305,8 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                                       height: 50,
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFDD1E36),
-                                        borderRadius: BorderRadius.circular(20.0),
+                                        borderRadius:
+                                            BorderRadius.circular(20.0),
                                       ),
                                       child: const Center(
                                         child: Text(
@@ -277,42 +318,57 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 20,),
-                                    const Text("รอบที่ 26 คิวที่ 301",
+                                    const SizedBox(
+                                      width: 20,
+                                    ),
+                                    const Text(
+                                      "รอบที่ 26 คิวที่ 301",
                                       style: TextStyle(
                                         fontSize: 18,
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 50,),
+                                const SizedBox(
+                                  height: 50,
+                                ),
                                 const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text("ถึงคิวที่ 350",
+                                    Text(
+                                      "ถึงคิวที่ 350",
                                       style: TextStyle(
                                         fontSize: 18,
                                       ),
                                     ),
-                                    SizedBox(width: 50,),
-                                    Text("จากทั้งหมด 800 คิว",
+                                    SizedBox(
+                                      width: 50,
+                                    ),
+                                    Text(
+                                      "จากทั้งหมด 800 คิว",
                                       style: TextStyle(
                                         fontSize: 18,
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 30,),
+                                const SizedBox(
+                                  height: 30,
+                                ),
                                 const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text("ตกคิวรับได้ คิวที่ 251",
+                                    Text(
+                                      "ตกคิวรับได้ คิวที่ 251",
                                       style: TextStyle(
                                         fontSize: 18,
                                       ),
                                     ),
-                                    SizedBox(width: 50,),
-                                    Text("ถึงคิวที่ 300",
+                                    SizedBox(
+                                      width: 50,
+                                    ),
+                                    Text(
+                                      "ถึงคิวที่ 300",
                                       style: TextStyle(
                                         fontSize: 18,
                                       ),
@@ -321,7 +377,8 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                                 ),
                                 const SizedBox(height: 30),
                                 const Center(
-                                  child: Text("ประกาศแล้ว 5817:22 ชั่วโมง",
+                                  child: Text(
+                                    "ประกาศแล้ว 5817:22 ชั่วโมง",
                                     style: TextStyle(
                                       fontSize: 18,
                                     ),
@@ -336,8 +393,11 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20,),
-              const Text("สอบถามคิวได้ที่เบอร์ 044-429400,ต่อ 334,176 \n สถานีวิทยุชาวไร่อ้อยดวงตะวัน 088-4926009 \n(93.5 MHz. และ 89.75 MHz)",
+              const SizedBox(
+                height: 20,
+              ),
+              const Text(
+                "สอบถามคิวได้ที่เบอร์ 044-429400,ต่อ 334,176 \n สถานีวิทยุชาวไร่อ้อยดวงตะวัน 088-4926009 \n(93.5 MHz. และ 89.75 MHz)",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
