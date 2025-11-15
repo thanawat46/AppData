@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'dart:convert';
+
 import 'package:intl/intl.dart';
 
 class CaneData {
@@ -44,8 +45,9 @@ class Income_year extends StatefulWidget {
 
 class _IncomeState extends State<Income_year> {
   late Future<List<CaneData>> futureData;
-  int? _selectedIndex;
+  int? _selectedIndex; // สำหรับเก็บ index ของแถวที่ถูกเลือก
   final String ID = '114603';
+  final Dio _dio = Dio(); // สร้าง instance ของ Dio
 
   @override
   void initState() {
@@ -60,26 +62,38 @@ class _IncomeState extends State<Income_year> {
   }
 
   Future<List<CaneData>> fetchData() async {
-    final response = await http
-        .get(Uri.parse('http://110.164.149.104:91/crapi/transectionview/$ID'));
+    try {
+      final response = await _dio.get('http://110.164.149.104:91/crapi/transectionview/$ID');
 
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
+      if (response.statusCode == 200) {
+        // dio จะทำการ decode json โดยอัตโนมัติ, response.data จึงเป็น Map/List อยู่แล้ว
+        final jsonResponse = response.data;
 
-      if (jsonResponse['success'] == false) {
-        throw Exception('ไม่พบข้อมูล กรุณาลองใหม่');
+        // ตรวจสอบค่า success ที่ API ส่งกลับมา
+        if (jsonResponse['success'] == false) {
+          // ถ้า success เป็น false, ให้โยน exception พร้อมกับข้อความที่เข้าใจง่าย
+          throw Exception('ไม่พบข้อมูล กรุณาลองใหม่');
+        }
+
+        final List<dynamic> dataList = jsonResponse['data'] ?? [];
+        return dataList.map((data) => CaneData.fromJson(data)).toList();
+      } else {
+        // ส่วนนี้อาจจะไม่ถูกเรียกใช้บ่อยนัก เพราะ Dio จะโยน DioError สำหรับการตอบกลับที่ไม่ใช่ 2xx
+        throw Exception('ไม่สามารถโหลดข้อมูลจาก API : Status code: ${response.statusCode}');
       }
-
-      final List<dynamic> dataList = jsonResponse['data'] ?? [];
-      return dataList.map((data) => CaneData.fromJson(data)).toList();
-    } else {
-      throw Exception(
-          'ไม่สามารถโหลดข้อมูลจาก API : Status code: ${response.statusCode}');
+    } on DioException catch (e) {
+      // จัดการข้อผิดพลาดเฉพาะของ Dio (เช่น การเชื่อมต่อหมดเวลา, ข้อผิดพลาดของเครือข่าย)
+      throw Exception('การเชื่อมต่อล้มเหลว: ${e.message}');
+    } catch (e) {
+      // จัดการข้อผิดพลาดอื่นๆ ที่อาจเกิดขึ้น
+      throw Exception('เกิดข้อผิดพลาดที่ไม่คาดคิด: $e');
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
+    // สร้าง instance ของ NumberFormat สำหรับการจัดรูปแบบ
     final numberFormatter = NumberFormat("#,##0.00", "en_US");
     final integerFormatter = NumberFormat("#,##0", "en_US");
 
@@ -218,7 +232,7 @@ class _IncomeState extends State<Income_year> {
                           child: SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: DataTable(
-                              showCheckboxColumn: false,
+                              showCheckboxColumn: false, // คำสั่งนี้จะซ่อน checkbox
                               headingRowColor:
                                   MaterialStateProperty.all(Colors.grey[100]),
                               columnSpacing: 20,
