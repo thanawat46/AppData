@@ -45,9 +45,9 @@ class Income_year extends StatefulWidget {
 
 class _IncomeState extends State<Income_year> {
   late Future<List<CaneData>> futureData;
-  int? _selectedIndex; // สำหรับเก็บ index ของแถวที่ถูกเลือก
+  int? _selectedIndex;
   final String ID = '114603';
-  final Dio _dio = Dio(); // สร้าง instance ของ Dio
+  final Dio _dio = Dio(); 
 
   @override
   void initState() {
@@ -99,7 +99,7 @@ class _IncomeState extends State<Income_year> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFDD1E36),
+        backgroundColor: const Color(0xFFE13E53),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
@@ -110,7 +110,7 @@ class _IncomeState extends State<Income_year> {
         ),
       ),
       body: Container(
-        color: const Color(0xFFDD1E36),
+        color: const Color(0xFFE13E53),
         width: double.infinity,
         height: double.infinity,
         child: FutureBuilder<List<CaneData>>(
@@ -162,7 +162,7 @@ class _IncomeState extends State<Income_year> {
                             child: Text(
                               "รายการส่งอ้อย(CCS) ${integerFormatter.format(itemCount)} รายการ",
                               style: const TextStyle(
-                                color: Color(0xFFDD1E36),
+                                color: Color(0xFFE13E53),
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -179,7 +179,7 @@ class _IncomeState extends State<Income_year> {
                               "ตันรวม ${numberFormatter.format(totalTons)} ตัน\nเฉลี่ย(CCS) ${averageCCS.toStringAsFixed(2)}",
                               textAlign: TextAlign.center,
                               style: const TextStyle(
-                                color: Color(0xFFDD1E36),
+                                color: Color(0xFFE13E53),
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -207,7 +207,7 @@ class _IncomeState extends State<Income_year> {
                               "รายได้รวม ${numberFormatter.format(totalIncome)} บาท",
                               textAlign: TextAlign.center,
                               style: const TextStyle(
-                                color: Color(0xFFDD1E36),
+                                color: Color(0xFFE13E53),
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),

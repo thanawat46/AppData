@@ -12,7 +12,7 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFDD1E36),
+        backgroundColor: const Color(0xFFE13E53),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
@@ -27,7 +27,7 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        color: const Color(0xFFDD1E36),
+        color: const Color(0xFFE13E53),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -47,7 +47,7 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                         width: 120,
                         height: 200,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFDD1E36),
+                          color: const Color(0xFFE13E53),
                           borderRadius: BorderRadius.circular(20.0),
                         ),
                         child: const Center(
@@ -98,7 +98,7 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                                       width: 120,
                                       height: 50,
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFDD1E36),
+                                        color: const Color(0xFFE13E53),
                                         borderRadius:
                                             BorderRadius.circular(20.0),
                                       ),
@@ -200,7 +200,7 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                                       width: 120,
                                       height: 50,
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFDD1E36),
+                                        color: const Color(0xFFE13E53),
                                         borderRadius:
                                             BorderRadius.circular(20.0),
                                       ),
@@ -304,7 +304,7 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                                       width: 170,
                                       height: 50,
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFDD1E36),
+                                        color: const Color(0xFFE13E53),
                                         borderRadius:
                                             BorderRadius.circular(20.0),
                                       ),

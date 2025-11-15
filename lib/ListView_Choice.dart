@@ -5,6 +5,8 @@ import 'Income_year.dart';
 import 'MessagePage.dart';
 import 'Plot_List.dart';
 import 'ProFilePage.dart';
+import 'Promote_API.dart';
+import 'QR_scanner.dart';
 import 'SettingPage.dart';
 
 class ListView_Choice extends StatefulWidget {
@@ -73,9 +75,9 @@ class _State extends State<ListView_Choice> {
                   label: 'รายการแปลง',
                 ),
                 NavigationDestination(
-                  selectedIcon: Icon(Icons.person, color: Colors.white), // Changed Icon
+                  selectedIcon: Icon(Icons.person, color: Colors.white),
                   icon: Icon(Icons.person_outline),
-                  label: 'โปรไฟล์', // Changed Label
+                  label: 'โปรไฟล์',
                 ),
               ],
             ),
@@ -169,13 +171,23 @@ class MainMenu extends StatelessWidget {
                           context,
                           icon: Icons.support_agent,
                           label: 'ส่งเสริม',
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const Promote_API()),
+                            );
+                          },
                         ),
                         _buildMenuItem(
                           context,
                           icon: Icons.qr_code_scanner,
                           label: 'QR Code',
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const QR_Scanner()),
+                            );
+                          },
                         ),
                         _buildMenuItem(
                           context,
