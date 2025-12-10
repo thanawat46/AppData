@@ -75,12 +75,12 @@ class _State extends State<ListView_Choice> {
                 NavigationDestination(
                   selectedIcon: Icon(Icons.receipt_long_rounded, color: Color(0xFFE13E53)),
                   icon: Icon(Icons.receipt_long_outlined, color: Colors.grey),
-                  label: 'CCS',
+                  label: 'อ้อย(CCS)',
                 ),
                 NavigationDestination(
                   selectedIcon: Icon(Icons.person_rounded, color: Color(0xFFE13E53)),
                   icon: Icon(Icons.person_outline, color: Colors.grey),
-                  label: 'โปรไฟล์',
+                  label: 'info',
                 ),
               ],
             ),
