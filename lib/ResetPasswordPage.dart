@@ -17,6 +17,11 @@ class _ResetpasswordpageState extends State<Resetpasswordpage> {
   bool _isNewPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
+  // Theme Colors
+  final Color primaryRed = const Color(0xFFE13E53);
+  final Color secondaryRed = const Color(0xFFFF6B6B);
+  final Color softBg = const Color(0xFFF5F7FA);
+
   @override
   void dispose() {
     _oldPasswordController.dispose();
@@ -28,172 +33,216 @@ class _ResetpasswordpageState extends State<Resetpasswordpage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: softBg,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        centerTitle: true,
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            shape: BoxShape.circle,
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
         title: const Text(
           "เปลี่ยนรหัสผ่าน",
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
+            fontSize: 20,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        centerTitle: true,
-        backgroundColor: const Color(0xFFE13E53),
       ),
       body: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 25.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildPasswordTextField(
-                  controller: _oldPasswordController,
-                  label: "รหัสผ่านเก่า",
-                  isVisible: _isOldPasswordVisible,
-                  onToggleVisibility: () {
-                    setState(() {
-                      _isOldPasswordVisible = !_isOldPasswordVisible;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'กรุณากรอกรหัสผ่านเก่า';
-                    }
-                    return null;
-                  },
+        child: Column(
+          children: [
+            // --- 1. ส่วนหัว (Header Gradient แบบไม่มีไอคอน) ---
+            Container(
+              height: 100, // ลดความสูงลงเพราะไม่มีไอคอนแล้ว
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [primaryRed, secondaryRed],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                _buildPasswordTextField(
-                  controller: _newPasswordController,
-                  label: "รหัสผ่านใหม่",
-                  isVisible: _isNewPasswordVisible,
-                  onToggleVisibility: () {
-                    setState(() {
-                      _isNewPasswordVisible = !_isNewPasswordVisible;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'กรุณากรอกรหัสผ่านใหม่';
-                    }
-                    return null;
-                  },
-                ),
-                _buildPasswordTextField(
-                  controller: _confirmPasswordController,
-                  label: "ยืนยันรหัสผ่านใหม่",
-                  isVisible: _isConfirmPasswordVisible,
-                  onToggleVisibility: () {
-                    setState(() {
-                      _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'กรุณายืนยันรหัสผ่านใหม่';
-                    }
-                    if (value != _newPasswordController.text) {
-                      return 'รหัสผ่านไม่ตรงกัน';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 30),
-                SizedBox(
-                  width: double.infinity,
-                  height: 55,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('กำลังเปลี่ยนรหัสผ่าน...')),
-                        );
-                        // TODO: Add actual password change logic
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFE13E53),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'ยืนยันการเปลี่ยนรหัสผ่าน',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30)),
+              ),
             ),
-          ),
+
+            const SizedBox(height: 30),
+
+            // --- 2. แบบฟอร์ม (Form) ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 25),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    const Text(
+                      "สร้างรหัสผ่านใหม่",
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      "กรุณากรอกรหัสผ่านปัจจุบันและรหัสผ่านใหม่\nเพื่อความปลอดภัยของบัญชี",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                    ),
+                    const SizedBox(height: 30),
+
+                    _buildModernPasswordField(
+                      controller: _oldPasswordController,
+                      label: "รหัสผ่านเดิม",
+                      hint: "กรอกรหัสผ่านปัจจุบัน",
+                      isVisible: _isOldPasswordVisible,
+                      onToggle: () => setState(() => _isOldPasswordVisible = !_isOldPasswordVisible),
+                      validator: (value) => value == null || value.isEmpty ? 'กรุณากรอกรหัสผ่านเดิม' : null,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    _buildModernPasswordField(
+                      controller: _newPasswordController,
+                      label: "รหัสผ่านใหม่",
+                      hint: "ตั้งรหัสผ่านใหม่อย่างน้อย 6 ตัว",
+                      isVisible: _isNewPasswordVisible,
+                      onToggle: () => setState(() => _isNewPasswordVisible = !_isNewPasswordVisible),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'กรุณากรอกรหัสผ่านใหม่';
+                        if (value.length < 6) return 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    _buildModernPasswordField(
+                      controller: _confirmPasswordController,
+                      label: "ยืนยันรหัสผ่านใหม่",
+                      hint: "กรอกรหัสผ่านใหม่อีกครั้ง",
+                      isVisible: _isConfirmPasswordVisible,
+                      onToggle: () => setState(() => _isConfirmPasswordVisible = !_isConfirmPasswordVisible),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'กรุณายืนยันรหัสผ่านใหม่';
+                        if (value != _newPasswordController.text) return 'รหัสผ่านไม่ตรงกัน';
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 40),
+
+                    // --- 3. ปุ่มบันทึก (Gradient Button) ---
+                    Container(
+                      width: double.infinity,
+                      height: 55,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [primaryRed, secondaryRed],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primaryRed.withOpacity(0.3),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            // TODO: Add logic here
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('เปลี่ยนรหัสผ่านเรียบร้อยแล้ว'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            Navigator.pop(context);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        ),
+                        child: const Text(
+                          'บันทึกรหัสผ่าน',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildPasswordTextField({
+  // Widget สร้างช่องกรอกรหัสผ่านแบบ Modern
+  Widget _buildModernPasswordField({
     required TextEditingController controller,
     required String label,
+    required String hint,
     required bool isVisible,
-    required VoidCallback onToggleVisibility,
+    required VoidCallback onToggle,
     String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54),
+        Padding(
+          padding: const EdgeInsets.only(left: 10, bottom: 5),
+          child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
         ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          obscureText: !isVisible,
-          validator: validator,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE13E53), width: 1.5),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red, width: 1.5),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red, width: 2.0),
-            ),
-            prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
-            suffixIcon: IconButton(
-              icon: Icon(
-                isVisible ? Icons.visibility_off : Icons.visibility,
-                color: Colors.grey,
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-              onPressed: onToggleVisibility,
+            ],
+          ),
+          child: TextFormField(
+            controller: controller,
+            obscureText: !isVisible,
+            validator: validator,
+            style: const TextStyle(fontSize: 16),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+              prefixIcon: Icon(Icons.lock_outline_rounded, color: primaryRed.withOpacity(0.7)),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  isVisible ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                  color: Colors.grey[400],
+                ),
+                onPressed: onToggle,
+              ),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+              filled: true,
+              fillColor: Colors.transparent,
+              contentPadding: const EdgeInsets.symmetric(vertical: 15),
             ),
           ),
         ),
-        const SizedBox(height: 20),
       ],
     );
   }

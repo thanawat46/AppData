@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'Login.dart';
 
 class Profilepage extends StatefulWidget {
@@ -12,134 +11,259 @@ class Profilepage extends StatefulWidget {
 }
 
 class _ProfilepageState extends State<Profilepage> {
+  final Color primaryRed = const Color(0xFFE13E53);
+  final Color secondaryRed = const Color(0xFFFF6B6B);
+  final Color bgSoft = const Color(0xFFF5F7FA);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: bgSoft,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
+        backgroundColor: Colors.transparent,
+        centerTitle: true,
         leading: widget.showBackButton
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.of(context).pop(),
-              )
+            ? Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            shape: BoxShape.circle,
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        )
             : null,
         automaticallyImplyLeading: false,
         title: const Text(
-          'โปรไฟล์',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          'โปรไฟล์ส่วนตัว',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
         ),
-        centerTitle: true,
-        backgroundColor: const Color(0xFFE13E53),
       ),
       body: SingleChildScrollView(
-        child: Column(children: [
-          Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.topCenter,
-            children: [
-              Container(
-                width: double.infinity,
-                height: 150,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE13E53),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(50),
-                    bottomRight: Radius.circular(50),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 30,
-                child: CircleAvatar(
-                  radius: 90,
-                  backgroundColor: Colors.white,
-                  child: CircleAvatar(
-                    radius: 85,
-                    backgroundColor: Colors.grey.shade200,
-                    child: Icon(
-                      Icons.person,
-                      size: 90,
-                      color: Colors.grey.shade400, // Using better contrast color
+        child: Column(
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  height: 260,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [primaryRed, secondaryRed],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(40)),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 80),
-
-          // User Info Cards
-          _buildInfoCard(
-            label: "ชื่อ-นามสกุล",
-            value: "นาย ธนวัฒน์ หนองงู",
-            icon: Icons.person_outline,
-          ),
-          _buildInfoCard(
-            label: "ที่อยู่",
-            value: "บ.หนองบัวกลาง ต.จักราช อ.จักราช จ.นครราชสีมา",
-            icon: Icons.location_on_outlined,
-          ),
-          _buildInfoCard(
-            label: "อีเมล",
-            value: "thanawat@rmuit.ac.th",
-            icon: Icons.email_outlined,
-          ),
-          _buildInfoCard(
-            label: "วันที่ลงทะเบียน",
-            value: "13/11/2567",
-            icon: Icons.calendar_today_outlined,
-          ),
-          const SizedBox(height: 30),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginPage()),
-                (Route<dynamic> route) => false,
-              );
-            },
-            icon: const Icon(Icons.logout, color: Colors.white),
-            label: const Text('ออกจากระบบ', style: TextStyle(fontSize: 18, color: Colors.white)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE13E53).withOpacity(0.9),
-              padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              elevation: 5,
+                Positioned(
+                  bottom: -60,
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 10)),
+                          ],
+                        ),
+                        child: CircleAvatar(
+                          radius: 70,
+                          backgroundColor: Colors.grey.shade100,
+                          child: Icon(Icons.person, size: 80, color: Colors.grey.shade400),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: primaryRed,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 3),
+                        ),
+                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 30),
-        ]),
+
+            const SizedBox(height: 80),
+            const Text(
+              "นาย ธนวัฒน์ หนองงู",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+            ),
+            Text(
+              "สมาชิกทั่วไป",
+              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            ),
+
+            const SizedBox(height: 30),
+
+            // --- 3. การ์ดข้อมูลส่วนตัว ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 5)),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    _buildProfileItem(Icons.email_outlined, "อีเมล", "thanawat@rmuit.ac.th"),
+                    const Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Divider(height: 1)),
+                    _buildProfileItem(Icons.phone_outlined, "เบอร์โทรศัพท์", "081-234-5678"),
+                    const Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Divider(height: 1)),
+                    _buildProfileItem(Icons.location_on_outlined, "ที่อยู่", "บ.หนองบัวกลาง ต.จักราช อ.จักราช จ.นครราชสีมา"),
+                    const Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Divider(height: 1)),
+                    _buildProfileItem(Icons.calendar_today_rounded, "วันที่ลงทะเบียน", "13/11/2567"),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 40),
+
+            // --- 4. ปุ่มออกจากระบบ ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: ElevatedButton(
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        title: const Text("ยืนยันการออก", style: TextStyle(fontWeight: FontWeight.bold)),
+                        content: const Text("คุณต้องการออกจากระบบใช่หรือไม่?"),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("ยกเลิก", style: TextStyle(color: Colors.grey))),
+                          TextButton(
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                                      (Route<dynamic> route) => false,
+                                );
+                              },
+                              child: Text("ออก", style: TextStyle(color: primaryRed, fontWeight: FontWeight.bold))
+                          ),
+                        ],
+                      )
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: primaryRed,
+                  elevation: 0,
+                  side: BorderSide(color: primaryRed.withOpacity(0.5)),
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.logout_rounded, color: primaryRed),
+                    const SizedBox(width: 10),
+                    const Text('ออกจากระบบ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 40),
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.code, size: 14, color: Colors.grey[400]),
+                    const SizedBox(width: 5),
+                    Text(
+                        "Designed & Developed by",
+                        style: TextStyle(color: Colors.grey[500], fontSize: 11)
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(width: 2),
+                    Text(
+                        "Thanawat No",
+                        style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold
+                        )
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                        "&",
+                        style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold
+                        )
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                        "Teerut Fa",
+                        style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold
+                        )
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 30),
+          ],
+        ),
       ),
     );
   }
 
-  // Reusable widget for creating user info cards
-  Widget _buildInfoCard({required String label, required String value, required IconData icon}) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 8.0),
-      elevation: 2.0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: const Color(0xFFE13E53), size: 30),
-        title: Text(
-          label,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[600],
+  Widget _buildProfileItem(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: primaryRed.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: primaryRed, size: 22),
           ),
-        ),
-        subtitle: Text(
-          value,
-          style: const TextStyle(
-            fontSize: 16,
-            color: Colors.black87,
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[500], fontWeight: FontWeight.w500)),
+                const SizedBox(height: 2),
+                Text(value, style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w600)),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

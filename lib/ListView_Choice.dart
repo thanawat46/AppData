@@ -18,6 +18,8 @@ class ListView_Choice extends StatefulWidget {
 
 class _State extends State<ListView_Choice> {
   int _selectedIndex = 0;
+
+  // Widget Options
   static final List<Widget> _widgetOptions = <Widget>[
     const MainMenu(),
     const PlotList(showBackButton: false),
@@ -26,7 +28,6 @@ class _State extends State<ListView_Choice> {
 
   void _onItemTapped(int index) {
     if (_selectedIndex == index) return;
-
     setState(() {
       _selectedIndex = index;
     });
@@ -37,46 +38,48 @@ class _State extends State<ListView_Choice> {
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(
-          child: _widgetOptions.elementAt(_selectedIndex),
+        backgroundColor: const Color(0xFFF5F7FA),
+        body: IndexedStack(
+          index: _selectedIndex,
+          children: _widgetOptions,
         ),
         bottomNavigationBar: Container(
-          margin: const EdgeInsets.all(16),
+          margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                color: const Color(0xFFE13E53).withOpacity(0.15),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(30),
             child: NavigationBar(
               height: 70,
               elevation: 0,
-              backgroundColor: Colors.transparent,
-              indicatorColor: const Color(0xFFE13E53),
+              backgroundColor: Colors.white,
+              indicatorColor: const Color(0xFFE13E53).withOpacity(0.1),
               selectedIndex: _selectedIndex,
               onDestinationSelected: _onItemTapped,
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
               destinations: const <Widget>[
                 NavigationDestination(
-                  selectedIcon: Icon(Icons.home, color: Colors.white),
-                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home_rounded, color: Color(0xFFE13E53)),
+                  icon: Icon(Icons.home_outlined, color: Colors.grey),
                   label: 'หน้าหลัก',
                 ),
                 NavigationDestination(
-                  selectedIcon: Icon(Icons.map, color: Colors.white),
-                  icon: Icon(Icons.map_outlined),
+                  selectedIcon: Icon(Icons.map_rounded, color: Color(0xFFE13E53)),
+                  icon: Icon(Icons.map_outlined, color: Colors.grey),
                   label: 'รายการแปลง',
                 ),
                 NavigationDestination(
-                  selectedIcon: Icon(Icons.person, color: Colors.white),
-                  icon: Icon(Icons.person_outline),
+                  selectedIcon: Icon(Icons.person_rounded, color: Color(0xFFE13E53)),
+                  icon: Icon(Icons.person_outline, color: Colors.grey),
                   label: 'โปรไฟล์',
                 ),
               ],
@@ -93,150 +96,166 @@ class MainMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFFE13E53),
-      width: double.infinity,
-      height: double.infinity,
-      child: Column(
+    return Scaffold(
+      backgroundColor: const Color(0xFFE13E53), // สีพื้นหลังด้านบน
+      body: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 100, bottom: 20),
-            child: Text("ยินต้อนรับ\nนาย ธีรุตม์ ฝาสันเทียะ",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white)),
+          Container(
+            padding: const EdgeInsets.only(top: 60, left: 25, right: 25, bottom: 30),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFE13E53), Color(0xFFFF6B6B)], // ไล่สีแดง -> ส้มแดง
+              ),
+            ),
+            child: Row(
+              children: [
+                // รูปโปรไฟล์ (Avatar)
+                Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.person, size: 40, color: Color(0xFFE13E53)),
+                    // ถ้ามีรูปจริงใช้: backgroundImage: NetworkImage('url'),
+                  ),
+                ),
+                const SizedBox(width: 15),
+                // ข้อความต้อนรับ
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("ยินดีต้อนรับ",
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white70)),
+                      Text("นาย ธีรุตม์ ฝาสันเทียะ",
+                          style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
+
+          // --- ส่วนเนื้อหา (เมนู) ---
           Expanded(
             child: Container(
               width: double.infinity,
               decoration: const BoxDecoration(
-                  color: Colors.white,
+                  color: Color(0xFFF5F7FA), // พื้นหลังเทาอ่อน
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(30.0),
                     topRight: Radius.circular(30.0),
                   )),
-              child: Column(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 20.0, bottom: 20.0),
-                    child: Text("เมนูรายการข้อมูลต่างๆ",
-                        style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black)),
-                  ),
-                  Expanded(
-                    child: GridView.count(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 5,
-                      mainAxisSpacing: 60,
-                      padding: const EdgeInsets.all(20),
-                      children: <Widget>[
-                        _buildMenuItem(
-                          context,
-                          icon: Icons.receipt_long,
-                          label: 'อ้อย(CCS)',
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const Income_year()),
-                            );
-                          },
-                        ),
-                        _buildMenuItem(
-                          context,
-                          icon: Icons.local_shipping,
-                          label: 'คิวรถอ้อย',
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const CheckQueuePage()),
-                            );
-                          },
-                        ),
-                        _buildMenuItem(
-                          context,
-                          icon: Icons.map_outlined,
-                          label: 'รายการแปลง',
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const PlotList()),
-                            );
-                          },
-                        ),
-                        _buildMenuItem(
-                          context,
-                          icon: Icons.support_agent,
-                          label: 'ส่งเสริม',
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const Promote_API()),
-                            );
-                          },
-                        ),
-                        _buildMenuItem(
-                          context,
-                          icon: Icons.qr_code_scanner,
-                          label: 'QR Code',
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const QR_Scanner()),
-                            );
-                          },
-                        ),
-                        _buildMenuItem(
-                          context,
-                          icon: Icons.newspaper,
-                          label: 'ข่าวสาร',
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const Messagepage()),
-                            );
-                          },
-                        ),
-                        _buildMenuItem(
-                          context,
-                          icon: Icons.info_outline,
-                          label: 'Info',
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const Profilepage()),
-                            );
-                          },
-                        ),
-                        _buildMenuItem(
-                          context,
-                          icon: Icons.settings,
-                          label: 'ตั้งค่า',
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const Settingpage()),
-                            );
-                          },
-                        ),
-                        _buildMenuItem(
-                          context,
-                          icon: Icons.logout,
-                          label: 'ออกจากระบบ',
-                          onPressed: () {
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(builder: (context) => const LoginPage()),
-                              (Route<dynamic> route) => false,
-                            );
-                          },
-                        ),
-                      ],
-                    ),                  ),
-                ],
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(30.0),
+                  topRight: Radius.circular(30.0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(25, 25, 25, 10),
+                      child: Text("บริการหลัก",
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87)),
+                    ),
+                    Expanded(
+                      child: GridView.count(
+                        crossAxisCount: 3,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        childAspectRatio: 0.85, // ปรับสัดส่วนการ์ดให้สวยงาม
+                        mainAxisSpacing: 15,
+                        crossAxisSpacing: 15,
+                        children: <Widget>[
+                          _buildModernMenuItem(
+                            context,
+                            icon: Icons.receipt_long_rounded,
+                            label: 'อ้อย(CCS)',
+                            color: Colors.orange,
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Income_year())),
+                          ),
+                          _buildModernMenuItem(
+                            context,
+                            icon: Icons.local_shipping_rounded,
+                            label: 'คิวรถอ้อย',
+                            color: Colors.blue,
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CheckQueuePage())),
+                          ),
+                          _buildModernMenuItem(
+                            context,
+                            icon: Icons.map_rounded,
+                            label: 'รายการแปลง',
+                            color: Colors.green,
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PlotList())),
+                          ),
+                          _buildModernMenuItem(
+                            context,
+                            icon: Icons.support_agent_rounded,
+                            label: 'ส่งเสริม',
+                            color: Colors.purple,
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Promote_API())),
+                          ),
+                          _buildModernMenuItem(
+                            context,
+                            icon: Icons.qr_code_scanner_rounded,
+                            label: 'QR Code',
+                            color: Colors.black87,
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const QR_Scanner())),
+                          ),
+                          _buildModernMenuItem(
+                            context,
+                            icon: Icons.newspaper_rounded,
+                            label: 'ข่าวสาร',
+                            color: Colors.indigo,
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Messagepage())),
+                          ),
+                          _buildModernMenuItem(
+                            context,
+                            icon: Icons.info_outline_rounded,
+                            label: 'Info',
+                            color: Colors.teal,
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Profilepage())),
+                          ),
+                          _buildModernMenuItem(
+                            context,
+                            icon: Icons.settings_rounded,
+                            label: 'ตั้งค่า',
+                            color: Colors.grey,
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Settingpage())),
+                          ),
+                          _buildModernMenuItem(
+                            context,
+                            icon: Icons.logout_rounded,
+                            label: 'ออกจากระบบ',
+                            color: const Color(0xFFE13E53),
+                            isDestructive: true,
+                            onPressed: () {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(builder: (context) => const LoginPage()),
+                                    (Route<dynamic> route) => false,
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -245,33 +264,61 @@ class MainMenu extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, {required IconData icon, required String label, required VoidCallback onPressed}) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 80,
-            height: 80,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFE13E53),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              onPressed: onPressed,
-              child: Icon(icon, size: 35),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+  // Widget สร้างปุ่มเมนูแบบใหม่ (Card Style)
+  Widget _buildModernMenuItem(BuildContext context,
+      {required IconData icon,
+        required String label,
+        required VoidCallback onPressed,
+        Color color = const Color(0xFFE13E53),
+        bool isDestructive = false}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
           ),
         ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // วงกลมพื้นหลังไอคอน
+              Container(
+                width: 55,
+                height: 55,
+                decoration: BoxDecoration(
+                  color: isDestructive ? color.withOpacity(0.1) : color.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  size: 28,
+                  color: color,
+                ),
+              ),
+              const SizedBox(height: 12),
+              // ข้อความ
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isDestructive ? color : Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
