@@ -86,12 +86,10 @@ class _PlotListState extends State<PlotList> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
                   child: Row(
                     children: [
-                      // ปุ่มย้อนกลับ (แสดงเฉพาะเมื่อกำหนดให้โชว์)
                       if (widget.showBackButton)
                         _buildGlassButton(Icons.arrow_back_ios_new, () => Navigator.of(context).pop())
                       else
                         const SizedBox(width: 40), // Placeholder เพื่อจัดกลาง
-
                       const Expanded(
                         child: Text(
                           'รายการแปลง',

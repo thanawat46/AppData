@@ -36,7 +36,9 @@ class CaneData {
 }
 
 class Income_year extends StatefulWidget {
-  const Income_year({super.key});
+  final bool showBackButton;
+
+  const Income_year({super.key, this.showBackButton = true});
 
   @override
   State<Income_year> createState() => _IncomeState();
@@ -128,7 +130,6 @@ class _IncomeState extends State<Income_year> {
       backgroundColor: softPinkBg, // พื้นหลังชมพูจางๆ
       body: Stack(
         children: [
-          // Header Gradient Background
           Container(
             height: 280,
             decoration: const BoxDecoration(
@@ -152,10 +153,10 @@ class _IncomeState extends State<Income_year> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: Row(
                     children: [
-                      _buildGlassButton(
-                        icon: Icons.arrow_back_ios_new,
-                        onTap: () => Navigator.of(context).pop(),
-                      ),
+                      if (widget.showBackButton)
+                        _buildGlassButton(Icons.arrow_back_ios_new, () => Navigator.of(context).pop())
+                      else
+                        const SizedBox(width: 40), // Placeholder เพื่อจัดกลาง
                       const Expanded(
                         child: Text(
                           'รายงานรายได้',
@@ -416,12 +417,15 @@ class _IncomeState extends State<Income_year> {
     );
   }
 
-  Widget _buildGlassButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _buildGlassButton(IconData icon, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: Colors.white.withOpacity(0.25), borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Icon(icon, color: Colors.white, size: 20),
       ),
     );

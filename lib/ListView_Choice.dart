@@ -73,9 +73,9 @@ class _State extends State<ListView_Choice> {
                   label: 'หน้าหลัก',
                 ),
                 NavigationDestination(
-                  selectedIcon: Icon(Icons.map_rounded, color: Color(0xFFE13E53)),
-                  icon: Icon(Icons.map_outlined, color: Colors.grey),
-                  label: 'รายการแปลง',
+                  selectedIcon: Icon(Icons.receipt_long_rounded, color: Color(0xFFE13E53)),
+                  icon: Icon(Icons.receipt_long_outlined, color: Colors.grey),
+                  label: 'CCS',
                 ),
                 NavigationDestination(
                   selectedIcon: Icon(Icons.person_rounded, color: Color(0xFFE13E53)),
@@ -195,12 +195,20 @@ class MainMenu extends StatelessWidget {
                             color: Colors.blue,
                             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CheckQueuePage())),
                           ),
+                          // --- 1. รายการแปลง (เปลี่ยนเป็น Popup) ---
                           _buildModernMenuItem(
                             context,
                             icon: Icons.map_rounded,
                             label: 'รายการแปลง',
-                            color: Colors.green,
-                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PlotList())),
+                            color: Colors.grey,
+                            onPressed: () {
+                              _showCompactNotice(
+                                context,
+                                'Coming Soon',
+                                'ระบบรายการแปลง ยังไม่พร้อมใช้งาน',
+                                Icons.map_rounded,
+                              );
+                            },
                           ),
                           _buildModernMenuItem(
                             context,
@@ -209,19 +217,35 @@ class MainMenu extends StatelessWidget {
                             color: Colors.purple,
                             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Promote_API())),
                           ),
+                          // --- 2. QR Code (เปลี่ยนเป็น Popup) ---
                           _buildModernMenuItem(
                             context,
                             icon: Icons.qr_code_scanner_rounded,
                             label: 'QR Code',
-                            color: Colors.black87,
-                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const QR_Scanner())),
+                            color: Colors.grey,
+                            onPressed: () {
+                              _showCompactNotice(
+                                context,
+                                'Coming Soon',
+                                'ระบบ QR Code ยังไม่พร้อมใช้งาน',
+                                Icons.qr_code_scanner_rounded,
+                              );
+                            },
                           ),
+                          // --- 3. ข่าวสาร (เปลี่ยนเป็น Popup) ---
                           _buildModernMenuItem(
                             context,
                             icon: Icons.newspaper_rounded,
                             label: 'ข่าวสาร',
-                            color: Colors.indigo,
-                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Messagepage())),
+                            color: Colors.grey,
+                            onPressed: () {
+                              _showCompactNotice(
+                                context,
+                                'Coming Soon',
+                                'ระบบข่าวสาร ยังไม่พร้อมใช้งาน',
+                                Icons.newspaper_rounded,
+                              );
+                            },
                           ),
                           _buildModernMenuItem(
                             context,
@@ -234,7 +258,7 @@ class MainMenu extends StatelessWidget {
                             context,
                             icon: Icons.settings_rounded,
                             label: 'ตั้งค่า',
-                            color: Colors.grey,
+                            color: Colors.green,
                             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Settingpage())),
                           ),
                           _buildModernMenuItem(
@@ -320,6 +344,94 @@ class MainMenu extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  // --- ฟังก์ชันแสดง Dialog แบบ Compact สวย กะทัดรัด (แบบ Capsule) ---
+  void _showCompactNotice(BuildContext context, String title, String message, IconData icon) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss',
+      barrierColor: Colors.black.withOpacity(0.3), // พื้นหลังจางๆ ไม่มืดเกินไป
+      transitionDuration: const Duration(milliseconds: 250), // เด้งขึ้นเร็วๆ
+      pageBuilder: (context, animation, secondaryAnimation) {
+
+        // ตั้งเวลาปิดอัตโนมัติ 1.5 วินาที
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
+        });
+
+        return Center(
+          child: Material(
+            color: Colors.transparent,
+            child: ScaleTransition(
+              scale: CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutBack, // เอฟเฟกต์เด้งดึ๋ง
+              ),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 40),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(50), // ทรงแคปซูล
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFE13E53).withOpacity(0.2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // ไอคอนซ้าย
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE13E53).withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(icon, color: const Color(0xFFE13E53), size: 24),
+                    ),
+                    const SizedBox(width: 15),
+                    // ข้อความขวา
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2D3142),
+                            ),
+                          ),
+                          Text(
+                            message,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

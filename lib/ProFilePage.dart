@@ -101,14 +101,7 @@ class _ProfilepageState extends State<Profilepage> {
               "นาย ธนวัฒน์ หนองงู",
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
             ),
-            Text(
-              "สมาชิกทั่วไป",
-              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-            ),
-
             const SizedBox(height: 30),
-
-            // --- 3. การ์ดข้อมูลส่วนตัว ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
