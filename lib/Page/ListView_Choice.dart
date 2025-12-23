@@ -1,28 +1,29 @@
-import 'package:appdata/Login.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:appdata/Page/Login.dart';
 import 'CheckQueuePage.dart';
 import 'Income_year.dart';
-import 'MessagePage.dart';
-import 'Plot_List.dart';
+// import 'MessagePage.dart';
+// import 'Plot_List.dart';
 import 'ProFilePage.dart';
 import 'Promote_API.dart';
-import 'QR_scanner.dart';
+// import 'QR_scanner.dart';
 import 'SettingPage.dart';
 
 class ListView_Choice extends StatefulWidget {
   const ListView_Choice({super.key});
 
   @override
-  State<ListView_Choice> createState() => _State();
+  State<ListView_Choice> createState() => _ListViewChoiceState();
 }
 
-class _State extends State<ListView_Choice> {
+class _ListViewChoiceState extends State<ListView_Choice> {
   int _selectedIndex = 0;
+  DateTime? _lastPressedAt; // ตัวแปรจับเวลาสำหรับ Double Back to Exit
 
-  // Widget Options
   static final List<Widget> _widgetOptions = <Widget>[
     const MainMenu(),
-    const PlotList(showBackButton: false),
+    const Income_year(showBackButton: false),
     const Profilepage(showBackButton: false),
   ];
 
@@ -35,19 +36,44 @@ class _State extends State<ListView_Choice> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
+    final double bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) return;
+        final now = DateTime.now();
+        final maxDuration = const Duration(seconds: 2);
+
+        if (_lastPressedAt == null || now.difference(_lastPressedAt!) > maxDuration) {
+          _lastPressedAt = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('กดอีกครั้งเพื่อออกจากแอป'),
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.only(bottom: 100, left: 20, right: 20),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+        } else {
+          SystemNavigator.pop(); // ออกจากแอป
+        }
+      },
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
+        extendBody: true,
+
         body: IndexedStack(
           index: _selectedIndex,
           children: _widgetOptions,
         ),
+
         bottomNavigationBar: Container(
-          margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          // Logic: Margin ล่าง = 20 + Safe Area
+          margin: EdgeInsets.fromLTRB(20, 0, 20, 20 + bottomPadding),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
+            color: Colors.transparent, // พื้นหลังใสเพื่อให้เห็นเงา
             boxShadow: [
               BoxShadow(
                 color: const Color(0xFFE13E53).withOpacity(0.15),
@@ -91,13 +117,14 @@ class _State extends State<ListView_Choice> {
   }
 }
 
+// --- Main Menu (หน้าหลัก) ---
 class MainMenu extends StatelessWidget {
   const MainMenu({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE13E53), // สีพื้นหลังด้านบน
+      backgroundColor: const Color(0xFFE13E53),
       body: Column(
         children: [
           Container(
@@ -106,12 +133,11 @@ class MainMenu extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFFE13E53), Color(0xFFFF6B6B)], // ไล่สีแดง -> ส้มแดง
+                colors: [Color(0xFFE13E53), Color(0xFFFF6B6B)],
               ),
             ),
             child: Row(
               children: [
-                // รูปโปรไฟล์ (Avatar)
                 Container(
                   padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
@@ -122,19 +148,15 @@ class MainMenu extends StatelessWidget {
                     radius: 30,
                     backgroundColor: Colors.white,
                     child: Icon(Icons.person, size: 40, color: Color(0xFFE13E53)),
-                    // ถ้ามีรูปจริงใช้: backgroundImage: NetworkImage('url'),
                   ),
                 ),
                 const SizedBox(width: 15),
-                // ข้อความต้อนรับ
                 const Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text("ยินดีต้อนรับ",
-                          style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white70)),
+                          style: TextStyle(fontSize: 16, color: Colors.white70)),
                       Text("นาย ธีรุตม์ ฝาสันเทียะ",
                           style: TextStyle(
                               fontSize: 22,
@@ -146,13 +168,11 @@ class MainMenu extends StatelessWidget {
               ],
             ),
           ),
-
-          // --- ส่วนเนื้อหา (เมนู) ---
           Expanded(
             child: Container(
               width: double.infinity,
               decoration: const BoxDecoration(
-                  color: Color(0xFFF5F7FA), // พื้นหลังเทาอ่อน
+                  color: Color(0xFFF5F7FA),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(30.0),
                     topRight: Radius.circular(30.0),
@@ -167,7 +187,7 @@ class MainMenu extends StatelessWidget {
                   children: [
                     const Padding(
                       padding: EdgeInsets.fromLTRB(25, 25, 25, 10),
-                      child: Text("บริการหลัก",
+                      child: Text("เมนูต่างๆ",
                           style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -176,8 +196,9 @@ class MainMenu extends StatelessWidget {
                     Expanded(
                       child: GridView.count(
                         crossAxisCount: 3,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        childAspectRatio: 0.85, // ปรับสัดส่วนการ์ดให้สวยงาม
+                        // เพิ่ม padding ด้านล่างเยอะหน่อย เพื่อให้ scroll พ้นเมนูบาร์
+                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
+                        childAspectRatio: 0.85,
                         mainAxisSpacing: 15,
                         crossAxisSpacing: 15,
                         children: <Widget>[
@@ -195,20 +216,13 @@ class MainMenu extends StatelessWidget {
                             color: Colors.blue,
                             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CheckQueuePage())),
                           ),
-                          // --- 1. รายการแปลง (เปลี่ยนเป็น Popup) ---
+                          // Coming Soon Items
                           _buildModernMenuItem(
                             context,
                             icon: Icons.map_rounded,
                             label: 'รายการแปลง',
                             color: Colors.grey,
-                            onPressed: () {
-                              _showCompactNotice(
-                                context,
-                                'Coming Soon',
-                                'ระบบรายการแปลง ยังไม่พร้อมใช้งาน',
-                                Icons.map_rounded,
-                              );
-                            },
+                            onPressed: () => _showCompactNotice(context, 'Coming Soon', 'ระบบรายการแปลง ยังไม่พร้อมใช้งาน', Icons.map_rounded),
                           ),
                           _buildModernMenuItem(
                             context,
@@ -217,35 +231,19 @@ class MainMenu extends StatelessWidget {
                             color: Colors.purple,
                             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Promote_API())),
                           ),
-                          // --- 2. QR Code (เปลี่ยนเป็น Popup) ---
                           _buildModernMenuItem(
                             context,
                             icon: Icons.qr_code_scanner_rounded,
                             label: 'QR Code',
                             color: Colors.grey,
-                            onPressed: () {
-                              _showCompactNotice(
-                                context,
-                                'Coming Soon',
-                                'ระบบ QR Code ยังไม่พร้อมใช้งาน',
-                                Icons.qr_code_scanner_rounded,
-                              );
-                            },
+                            onPressed: () => _showCompactNotice(context, 'Coming Soon', 'ระบบ QR Code ยังไม่พร้อมใช้งาน', Icons.qr_code_scanner_rounded),
                           ),
-                          // --- 3. ข่าวสาร (เปลี่ยนเป็น Popup) ---
                           _buildModernMenuItem(
                             context,
                             icon: Icons.newspaper_rounded,
                             label: 'ข่าวสาร',
                             color: Colors.grey,
-                            onPressed: () {
-                              _showCompactNotice(
-                                context,
-                                'Coming Soon',
-                                'ระบบข่าวสาร ยังไม่พร้อมใช้งาน',
-                                Icons.newspaper_rounded,
-                              );
-                            },
+                            onPressed: () => _showCompactNotice(context, 'Coming Soon', 'ระบบข่าวสาร ยังไม่พร้อมใช้งาน', Icons.newspaper_rounded),
                           ),
                           _buildModernMenuItem(
                             context,
@@ -288,7 +286,6 @@ class MainMenu extends StatelessWidget {
     );
   }
 
-  // Widget สร้างปุ่มเมนูแบบใหม่ (Card Style)
   Widget _buildModernMenuItem(BuildContext context,
       {required IconData icon,
         required String label,
@@ -315,12 +312,11 @@ class MainMenu extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // วงกลมพื้นหลังไอคอน
               Container(
                 width: 55,
                 height: 55,
                 decoration: BoxDecoration(
-                  color: isDestructive ? color.withOpacity(0.1) : color.withOpacity(0.1),
+                  color: color.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -330,7 +326,6 @@ class MainMenu extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              // ข้อความ
               Text(
                 label,
                 textAlign: TextAlign.center,
@@ -347,17 +342,15 @@ class MainMenu extends StatelessWidget {
     );
   }
 
-  // --- ฟังก์ชันแสดง Dialog แบบ Compact สวย กะทัดรัด (แบบ Capsule) ---
   void _showCompactNotice(BuildContext context, String title, String message, IconData icon) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Dismiss',
-      barrierColor: Colors.black.withOpacity(0.3), // พื้นหลังจางๆ ไม่มืดเกินไป
-      transitionDuration: const Duration(milliseconds: 250), // เด้งขึ้นเร็วๆ
+      barrierColor: Colors.black.withOpacity(0.3),
+      transitionDuration: const Duration(milliseconds: 250),
       pageBuilder: (context, animation, secondaryAnimation) {
-
-        // ตั้งเวลาปิดอัตโนมัติ 1.5 วินาที
+        // ใช้ Future.delayed เพื่อปิด dialog อัตโนมัติ โดยเช็ค mounted ก่อน
         Future.delayed(const Duration(milliseconds: 1500), () {
           if (context.mounted) {
             Navigator.of(context).pop();
@@ -370,14 +363,14 @@ class MainMenu extends StatelessWidget {
             child: ScaleTransition(
               scale: CurvedAnimation(
                 parent: animation,
-                curve: Curves.easeOutBack, // เอฟเฟกต์เด้งดึ๋ง
+                curve: Curves.easeOutBack,
               ),
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 40),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(50), // ทรงแคปซูล
+                  borderRadius: BorderRadius.circular(50),
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xFFE13E53).withOpacity(0.2),
@@ -389,7 +382,6 @@ class MainMenu extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ไอคอนซ้าย
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -399,7 +391,6 @@ class MainMenu extends StatelessWidget {
                       child: Icon(icon, color: const Color(0xFFE13E53), size: 24),
                     ),
                     const SizedBox(width: 15),
-                    // ข้อความขวา
                     Expanded(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
