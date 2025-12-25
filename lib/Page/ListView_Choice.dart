@@ -196,7 +196,6 @@ class MainMenu extends StatelessWidget {
                     Expanded(
                       child: GridView.count(
                         crossAxisCount: 3,
-                        // เพิ่ม padding ด้านล่างเยอะหน่อย เพื่อให้ scroll พ้นเมนูบาร์
                         padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
                         childAspectRatio: 0.85,
                         mainAxisSpacing: 15,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'ListView_Choice.dart'; // ตรวจสอบว่ามีไฟล์นี้อยู่จริง
+import 'ListView_Choice.dart';
+import 'ResetPasswordPage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -36,9 +37,9 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
-  // --- Logic 1: ตัวจัดการปุ่มกด (Interceptor) ---
   Future<void> _handleLoginButtonPress() async {
-    // 1. Validate Input ก่อน (ถ้ายังไม่กรอก ไม่ต้องเด้ง Consent)
+    FocusScope.of(context).unfocus();
+
     final isQuotaValid = _quotaCodeController.text.isNotEmpty;
     final isIdCardValid = _idCardController.text.isNotEmpty;
 
@@ -48,34 +49,41 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
     });
 
     if (!isQuotaValid || !isIdCardValid) {
-      return; // หยุดทำงานถ้าข้อมูลไม่ครบ
+      return;
     }
 
-    // 2. ถ้าข้อมูลครบ -> แสดง Modal ขอ Consent
     final bool? isAccepted = await showModalBottomSheet<bool>(
       context: context,
-      isScrollControlled: true, // สำคัญ: เพื่อให้ Modal สูงได้ตามต้องการ
-      isDismissible: false,     // บังคับเลือก
-      enableDrag: false,        // ห้ามรูดปิด
+      isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
       backgroundColor: Colors.transparent,
       builder: (context) => const ConsentModalWidget(),
     );
 
-    // 3. ถ้า User กด "ยอมรับ" -> ไป Login จริงๆ
     if (isAccepted == true) {
       _performLogin();
     }
   }
 
-  // --- Logic 2: การทำงาน Login จริงๆ (Navigation) ---
   void _performLogin() {
-    // ตรงนี้อาจจะเพิ่ม Logic การยิง API Login จริงๆ
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const ListView_Choice()),
     );
   }
 
+  static const platform = MethodChannel('com.kisugar.app/launcher');
+
+  Future<void> _launchFacebook() async {
+    try {
+      await platform.invokeMethod('openUrl', {
+        'url': 'https://www.facebook.com/kisugargroup'
+      });
+    } on PlatformException catch (e) {
+      debugPrint("Error: '${e.message}'.");
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,7 +121,6 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(20.0),
-                            // ตรวจสอบ Path รูปภาพให้ถูกต้อง
                             child: Image.asset('assets/images/logo-KI.png', width: 120, height: 120, fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) => Container(width: 120, height: 120, color: Colors.white, child: const Icon(Icons.image_not_supported)), // Fallback กรณีไม่มีรูป
                             ),
@@ -121,15 +128,13 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
                         ),
                         const SizedBox(height: 15),
                         const Text("KI SUGAR", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)),
-                        const Text("Smart Farmer System", style: TextStyle(color: Colors.white70, fontSize: 14)),
+                        const Text("ยินดีต้อนรับ", style: TextStyle(color: Colors.white70, fontSize: 16)),
                       ],
                     ),
                   ),
                 ),
               ],
             ),
-
-            // --- Form ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: FadeTransition(
@@ -165,7 +170,12 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const Resetpasswordpage()),
+                          );
+                        },
                         child: const Text("ลืมรหัสผ่าน?", style: TextStyle(color: Colors.grey)),
                       ),
                     ),
@@ -176,7 +186,6 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
                       width: double.infinity,
                       height: 55,
                       child: ElevatedButton(
-                        // เรียกใช้ Interceptor แทนฟังก์ชัน Login โดยตรง
                         onPressed: _handleLoginButtonPress,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFE13E53),
@@ -187,16 +196,13 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
                         child: const Text('เข้าสู่ระบบ', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                       ),
                     ),
-
                     const SizedBox(height: 30),
-
-                    // Social Login Divider
                     Row(
                       children: [
                         Expanded(child: Divider(color: Colors.grey[300])),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Text("หรือเข้าสู่ระบบด้วย", style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+                          child: Text("ติดตามข่าวสาร", style: TextStyle(color: Colors.grey[500], fontSize: 12)),
                         ),
                         Expanded(child: Divider(color: Colors.grey[300])),
                       ],
@@ -209,14 +215,9 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
                         _buildSocialButton(
                             icon: Icons.facebook,
                             color: const Color(0xFF1877F2),
-                            onTap: () {}
-                        ),
-                        const SizedBox(width: 20),
-                        _buildSocialButton(
-                            icon: Icons.g_mobiledata,
-                            color: Colors.red,
-                            isGoogle: true,
-                            onTap: () {}
+                            onTap: () async {
+                              _launchFacebook();
+                            }
                         ),
                       ],
                     ),
@@ -316,10 +317,6 @@ class HeaderClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
-// ==========================================
-// 🛡️ Consent Modal Components
-// ==========================================
-
 class ConsentModalWidget extends StatelessWidget {
   const ConsentModalWidget({Key? key}) : super(key: key);
 
@@ -364,7 +361,7 @@ class ConsentModalWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context, false), // ส่งค่า false กลับ
+                      onPressed: () => Navigator.pop(context, false),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         side: const BorderSide(color: Colors.grey),
@@ -376,7 +373,7 @@ class ConsentModalWidget extends StatelessWidget {
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context, true), // ส่งค่า true กลับ
+                      onPressed: () => Navigator.pop(context, true),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: const Color(0xFFE13E53),
@@ -406,7 +403,7 @@ class CategorizedConsentList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: const [
         Text(
-          'เพื่อการแสดงผลข้อมูลรายได้และประวัติการขนส่งอ้อยที่ถูกต้อง แอปพลิเคชันขออนุญาตเข้าถึงข้อมูลโปรไฟล์เพื่อยืนยันตัวตนของท่าน ข้อมูลดั้งนี่ :',
+          'เพื่อให้ท่านได้รับรายงานรายได้และประวัติการขนส่งอ้อยที่ถูกต้อง \nทางเราขออนุญาตเข้าถึงข้อมูลโปรไฟล์เพื่อใช้ในการยืนยันตัวตนและแสดงผลข้อมูลของท่าน :',
           style: TextStyle(fontSize: 15, color: Colors.black54),
         ),
         SizedBox(height: 16),

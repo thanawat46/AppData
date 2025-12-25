@@ -16,7 +16,6 @@ class SmartResource<T> {
 
     if (!forceRefresh && _cache != null && _lastFetchTime != null) {
       if (DateTime.now().difference(_lastFetchTime!) < cacheDuration) {
-        print("⚡ ใช้ข้อมูลจาก Cache (ประหยัดเน็ต)");
         return _cache!;
       }
     }
