@@ -155,14 +155,14 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
                       maxLength: 6,
                     ),
                     const SizedBox(height: 20),
-
                     _buildTextField(
                       controller: _idCardController,
-                      label: 'รหัสผ่าน',
+                      label: 'รหัสท้าย 4 ตัวบัตรประชาชน',
                       icon: Icons.lock_outline,
                       errorText: _idCardErrorText,
                       isPassword: true,
                       obscureText: _isObscure,
+                      maxLength: 4,
                       onToggleVisibility: () => setState(() => _isObscure = !_isObscure),
                     ),
 
@@ -180,8 +180,6 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
                       ),
                     ),
                     const SizedBox(height: 10),
-
-                    // --- Login Button ---
                     SizedBox(
                       width: double.infinity,
                       height: 55,

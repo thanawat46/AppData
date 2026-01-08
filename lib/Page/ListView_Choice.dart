@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:appdata/Page/Login.dart';
 import 'CheckQueuePage.dart';
 import 'Income_year.dart';
-// import 'MessagePage.dart';
-// import 'Plot_List.dart';
+import 'Login.dart';
 import 'ProFilePage.dart';
 import 'Promote_API.dart';
-// import 'QR_scanner.dart';
 import 'SettingPage.dart';
 
 class ListView_Choice extends StatefulWidget {
@@ -19,7 +16,7 @@ class ListView_Choice extends StatefulWidget {
 
 class _ListViewChoiceState extends State<ListView_Choice> {
   int _selectedIndex = 0;
-  DateTime? _lastPressedAt; // ตัวแปรจับเวลาสำหรับ Double Back to Exit
+  DateTime? _lastPressedAt;
 
   static final List<Widget> _widgetOptions = <Widget>[
     const MainMenu(),
@@ -34,9 +31,14 @@ class _ListViewChoiceState extends State<ListView_Choice> {
     });
   }
 
+  Widget _buildIcon(IconData iconData, Color color) {
+    return Icon(iconData, color: color, size: 26);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final double bottomPadding = MediaQuery.of(context).padding.bottom;
+    final double safePadding = MediaQuery.of(context).padding.bottom;
+    final double adjustedBottomPadding = safePadding > 0 ? safePadding : 10.0;
 
     return PopScope(
       canPop: false,
@@ -52,72 +54,88 @@ class _ListViewChoiceState extends State<ListView_Choice> {
               content: const Text('กดอีกครั้งเพื่อออกจากแอป'),
               duration: const Duration(seconds: 2),
               behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(bottom: 100, left: 20, right: 20),
+              margin: const EdgeInsets.only(bottom: 100, left: 20, right: 20),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
           );
         } else {
-          SystemNavigator.pop(); // ออกจากแอป
+          SystemNavigator.pop();
         }
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
         extendBody: true,
-
         body: IndexedStack(
           index: _selectedIndex,
           children: _widgetOptions,
         ),
-
-        bottomNavigationBar: Container(
-          // Logic: Margin ล่าง = 20 + Safe Area
-          margin: EdgeInsets.fromLTRB(20, 0, 20, 20 + bottomPadding),
-          decoration: BoxDecoration(
-            color: Colors.transparent, // พื้นหลังใสเพื่อให้เห็นเงา
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFE13E53).withOpacity(0.15),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
+          bottomNavigationBar: Container(
+            margin: EdgeInsets.fromLTRB(20, 0, 20, 20 + adjustedBottomPadding),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(40),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.5),
+                width: 1.5,
               ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(30),
-            child: NavigationBar(
-              height: 70,
-              elevation: 0,
-              backgroundColor: Colors.white,
-              indicatorColor: const Color(0xFFE13E53).withOpacity(0.1),
-              selectedIndex: _selectedIndex,
-              onDestinationSelected: _onItemTapped,
-              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-              destinations: const <Widget>[
-                NavigationDestination(
-                  selectedIcon: Icon(Icons.home_rounded, color: Color(0xFFE13E53)),
-                  icon: Icon(Icons.home_outlined, color: Colors.grey),
-                  label: 'หน้าหลัก',
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
                 ),
-                NavigationDestination(
-                  selectedIcon: Icon(Icons.receipt_long_rounded, color: Color(0xFFE13E53)),
-                  icon: Icon(Icons.receipt_long_outlined, color: Colors.grey),
-                  label: 'อ้อย(CCS)',
-                ),
-                NavigationDestination(
-                  selectedIcon: Icon(Icons.person_rounded, color: Color(0xFFE13E53)),
-                  icon: Icon(Icons.person_outline, color: Colors.grey),
-                  label: 'info',
+                BoxShadow(
+                  color: const Color(0xFFE13E53).withOpacity(0.25),
+                  blurRadius: 25,
+                  offset: const Offset(0, 10),
+                  spreadRadius: -5,
                 ),
               ],
             ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(40),
+              child: MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  padding: const EdgeInsets.only(top: 10, bottom: 15),
+                ),
+                child: NavigationBar(
+                  height: 70,
+                  elevation: 0,
+                  backgroundColor: Colors.transparent,
+                  surfaceTintColor: Colors.transparent,
+                  indicatorColor: const Color(0xFFE13E53).withOpacity(0.15),
+                  indicatorShape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: _onItemTapped,
+                  labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                  destinations: <Widget>[
+                    NavigationDestination(
+                      selectedIcon: _buildIcon(Icons.home_rounded, const Color(0xFFE13E53)),
+                      icon: _buildIcon(Icons.home_outlined, Colors.grey.shade400),
+                      label: 'หน้าหลัก',
+                    ),
+                    NavigationDestination(
+                      selectedIcon: _buildIcon(Icons.receipt_long_rounded, const Color(0xFFE13E53)),
+                      icon: _buildIcon(Icons.receipt_long_outlined, Colors.grey.shade400),
+                      label: 'อ้อย(CCS)',
+                    ),
+                    NavigationDestination(
+                      selectedIcon: _buildIcon(Icons.person_rounded, const Color(0xFFE13E53)),
+                      icon: _buildIcon(Icons.person_outline, Colors.grey.shade400),
+                      label: 'info',
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
       ),
     );
   }
 }
 
-// --- Main Menu (หน้าหลัก) ---
 class MainMenu extends StatelessWidget {
   const MainMenu({super.key});
 
@@ -215,7 +233,6 @@ class MainMenu extends StatelessWidget {
                             color: Colors.blue,
                             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CheckQueuePage())),
                           ),
-                          // Coming Soon Items
                           _buildModernMenuItem(
                             context,
                             icon: Icons.map_rounded,
@@ -349,7 +366,6 @@ class MainMenu extends StatelessWidget {
       barrierColor: Colors.black.withOpacity(0.3),
       transitionDuration: const Duration(milliseconds: 250),
       pageBuilder: (context, animation, secondaryAnimation) {
-        // ใช้ Future.delayed เพื่อปิด dialog อัตโนมัติ โดยเช็ค mounted ก่อน
         Future.delayed(const Duration(milliseconds: 1500), () {
           if (context.mounted) {
             Navigator.of(context).pop();
