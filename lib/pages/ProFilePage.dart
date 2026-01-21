@@ -3,8 +3,13 @@ import 'Login.dart';
 
 class Profilepage extends StatefulWidget {
   final bool showBackButton;
+  final String username;
 
-  const Profilepage({super.key, this.showBackButton = true});
+  const Profilepage({
+    super.key,
+    this.showBackButton = true,
+    required this.username,
+  });
 
   @override
   State<Profilepage> createState() => _ProfilepageState();
@@ -39,7 +44,7 @@ class _ProfilepageState extends State<Profilepage> {
             : null,
         automaticallyImplyLeading: false,
         title: const Text(
-          'โปรไฟล์ส่วนตัว',
+          'โปรไฟล์',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
         ),
       ),

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:convert';
+import '../repositories/cane_repository.dart';
 import 'ListView_Choice.dart';
 import 'ResetPasswordPage.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,8 +19,9 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
   String? _quotaErrorText;
   String? _idCardErrorText;
   bool _isObscure = true;
+  bool _isRememberMe = false;
+  bool _isLoading = false;
 
-  // Animation Controller
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
 
@@ -51,26 +55,177 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
     if (!isQuotaValid || !isIdCardValid) {
       return;
     }
-
-    final bool? isAccepted = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      isDismissible: false,
-      enableDrag: false,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const ConsentModalWidget(),
-    );
-
-    if (isAccepted == true) {
-      _performLogin();
-    }
+    _performLogin();
   }
 
-  void _performLogin() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const ListView_Choice()),
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.rectangle,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 10,
+                offset: Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE13E53).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.error_rounded,
+                  size: 40,
+                  color: Color(0xFFE13E53),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                "แจ้งเตือน",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2D3142),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                message,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black54,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 25),
+              SizedBox(
+                width: double.infinity,
+                height: 45,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE13E53),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    "ตกลง",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
+  }
+
+  void _performLogin() async {
+    if (mounted) setState(() => _isLoading = true);
+
+    try {
+      String code = _quotaCodeController.text.trim();
+      String id = _idCardController.text.trim();
+
+      if (code.isEmpty || id.isEmpty) {
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
+
+      Map<String, String> dataMap = { "uxxname": code, "pxxword": id };
+      String plainText = jsonEncode(dataMap);
+      final key = encrypt.Key.fromUtf8('MySecret1234ABCD');
+      final iv = encrypt.IV.fromUtf8('Salt123456789012');
+      final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
+      final encrypted = encrypter.encrypt(plainText, iv: iv);
+      String encryptedResult = encrypted.base64;
+
+      AuthService authService = AuthService();
+      var response = await authService.loginWithEncryptedData(encryptedResult);
+      print("Login Response: $response");
+
+      bool isSuccess = false;
+      String errorMessage = "ไม่สามารถเข้าสู่ระบบได้";
+
+      if (response != null && response is Map) {
+        final successVal = response['success'];
+        if (successVal == true || successVal == "true") {
+          isSuccess = true;
+        }
+
+        if (!isSuccess) {
+          dynamic serverError = response['errorMessage'] ?? response['msg'] ?? response['error'];
+
+          if (serverError != null) {
+            String errStr = serverError.toString().toLowerCase();
+            if (errStr.contains("invalid") || errStr.contains("fail")) {
+              errorMessage = "รหัสโควต้าหรือรหัสผ่านไม่ถูกต้อง";
+            } else {
+              errorMessage = serverError.toString();
+            }
+          } else {
+            errorMessage = "ตรวจสอบรหัสโควต้าและรหัสผ่านอีกครั้ง";
+          }
+        }
+      } else {
+        errorMessage = "ระบบขัดข้อง ไม่ได้รับข้อมูลตอบกลับที่ถูกต้อง";
+      }
+
+      if (!mounted) return;
+
+      if (isSuccess) {
+        setState(() => _isLoading = false);
+
+        // Show Consent Modal
+        final bool? isAccepted = await showModalBottomSheet<bool>(
+          context: context,
+          isScrollControlled: true,
+          isDismissible: false,
+          enableDrag: false,
+          backgroundColor: Colors.transparent,
+          builder: (context) => const ConsentModalWidget(),
+        );
+
+        if (isAccepted == true && mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => ListView_Choice(username: code)),
+          );
+        }
+      } else {
+        _showErrorDialog(errorMessage);
+        setState(() => _isLoading = false);
+      }
+
+    } catch (e) {
+      debugPrint("Error: $e");
+      if (mounted) {
+        _showErrorDialog("เกิดข้อผิดพลาดในการเชื่อมต่อ (Connection Error)");
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   static const platform = MethodChannel('com.kisugar.app/launcher');
@@ -84,6 +239,7 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
       debugPrint("Error: '${e.message}'.");
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,7 +278,7 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(20.0),
                             child: Image.asset('assets/images/logo-KI.png', width: 120, height: 120, fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => Container(width: 120, height: 120, color: Colors.white, child: const Icon(Icons.image_not_supported)), // Fallback กรณีไม่มีรูป
+                              errorBuilder: (context, error, stackTrace) => Container(width: 120, height: 120, color: Colors.white, child: const Icon(Icons.image_not_supported)),
                             ),
                           ),
                         ),
@@ -157,41 +313,99 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
                     const SizedBox(height: 20),
                     _buildTextField(
                       controller: _idCardController,
-                      label: 'รหัสท้าย 4 ตัวบัตรประชาชน',
+                      label: 'รหัสผ่าน',
                       icon: Icons.lock_outline,
                       errorText: _idCardErrorText,
                       isPassword: true,
                       obscureText: _isObscure,
-                      maxLength: 4,
+                      maxLength: 6,
                       onToggleVisibility: () => setState(() => _isObscure = !_isObscure),
                     ),
 
                     const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const Resetpasswordpage()),
-                          );
-                        },
-                        child: const Text("ลืมรหัสผ่าน?", style: TextStyle(color: Colors.grey)),
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Transform.scale(
+                              scale: 1.1,
+                              child: Checkbox(
+                                value: _isRememberMe,
+                                activeColor: const Color(0xFFE13E53),
+                                checkColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                side: WidgetStateBorderSide.resolveWith(
+                                      (states) => BorderSide(
+                                    width: 1.5,
+                                    color: _isRememberMe ? const Color(0xFFE13E53) : Colors.grey.shade400,
+                                  ),
+                                ),
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    _isRememberMe = value ?? false;
+                                  });
+                                },
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _isRememberMe = !_isRememberMe;
+                                });
+                              },
+                              child: AnimatedDefaultTextStyle(
+                                duration: const Duration(milliseconds: 200),
+                                style: TextStyle(
+                                  fontFamily: 'Prompt',
+                                  fontSize: 14,
+                                  fontWeight: _isRememberMe ? FontWeight.w600 : FontWeight.normal,
+                                  color: _isRememberMe ? const Color(0xFFE13E53) : Colors.grey.shade600,
+                                ),
+                                child: const Text("จดจำรหัสผ่าน"),
+                              ),
+                            ),
+                          ],
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const Resetpasswordpage()),
+                            );
+                          },
+                          child: const Text(
+                            "ลืมรหัสผ่าน?",
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 10),
                     SizedBox(
                       width: double.infinity,
                       height: 55,
                       child: ElevatedButton(
-                        onPressed: _handleLoginButtonPress,
+                        onPressed: _isLoading ? null : _handleLoginButtonPress,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFE13E53),
+                          disabledBackgroundColor: const Color(0xFFE13E53).withOpacity(0.6),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                           elevation: 5,
-                          shadowColor: const Color(0xFFE13E53).withOpacity(0.4),
                         ),
-                        child: const Text('เข้าสู่ระบบ', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                        child: _isLoading
+                            ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                        )
+                            : const Text('เข้าสู่ระบบ', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                       ),
                     ),
                     const SizedBox(height: 30),
@@ -229,6 +443,8 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
       ),
     );
   }
+
+  // --- Widget Helper Methods (เหมือนเดิม) ---
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -315,6 +531,8 @@ class HeaderClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
+// --- ส่วนประกอบ UI ที่ขาดหายไป (วางต่อท้ายไฟล์ได้เลย) ---
+
 class ConsentModalWidget extends StatelessWidget {
   const ConsentModalWidget({Key? key}) : super(key: key);
 
@@ -399,7 +617,7 @@ class CategorizedConsentList extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
+      children: [
         Text(
           'เพื่อให้ท่านได้รับรายงานรายได้และประวัติการขนส่งอ้อยที่ถูกต้อง \nทางเราขออนุญาตเข้าถึงข้อมูลโปรไฟล์เพื่อใช้ในการยืนยันตัวตนและแสดงผลข้อมูลของท่าน :',
           style: TextStyle(fontSize: 15, color: Colors.black54),

@@ -1,5 +1,6 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
-import '../models/cane_data_model.dart';
+import '../models/data_model.dart';
 import '../utils/smart_resource.dart';
 
 class CaneRepository {
@@ -8,7 +9,7 @@ class CaneRepository {
   final _transactionsRes = SmartResource<List<CaneData>>();
 
   CaneRepository({Dio? dio}) : _dio = dio ?? Dio() {
-    _dio.options.baseUrl = 'http://110.164.149.104:91/crapi';
+    _dio.options.baseUrl = 'http://110.164.149.104:9198/ccs';
   }
 
   Future<List<CaneData>> getCaneTransactions(String id, {bool forceRefresh = false}) {
@@ -24,5 +25,37 @@ class CaneRepository {
         throw Exception('Server Error');
       },
     );
+  }
+}
+
+class AuthService {
+  final Dio _dio = Dio();
+
+  Future<Map<String, dynamic>?> loginWithEncryptedData(String encryptedBase64) async {
+    const String url = 'http://110.164.149.104:9198/ccs/signin';
+
+    try {
+      var data = json.encode({
+        "codestr": encryptedBase64
+      });
+
+      final response = await _dio.post(
+        url,
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+        ),
+        data: data,
+      );
+
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        print("Server Error: ${response.statusMessage}");
+        return null;
+      }
+    } catch (e) {
+      print("Connection Error: $e");
+      return null;
+    }
   }
 }

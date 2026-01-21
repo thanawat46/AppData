@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:page_transition/page_transition.dart';
-import 'Page/Login.dart';
+import 'pages/Login.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 void main() async {

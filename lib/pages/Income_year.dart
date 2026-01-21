@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/cane_data_model.dart';
+import '../models/data_model.dart';
 import '../repositories/cane_repository.dart';
 
 class Income_year extends StatefulWidget {
+  final String username;
   final bool showBackButton;
 
-  const Income_year({super.key, this.showBackButton = true});
+  const Income_year({
+    super.key,
+    this.showBackButton = true,
+    required this.username,
+  });
 
   @override
   State<Income_year> createState() => _IncomeState();
@@ -15,7 +20,6 @@ class Income_year extends StatefulWidget {
 class _IncomeState extends State<Income_year> {
   late Future<List<CaneData>> futureData;
   int? _selectedIndex;
-  final String userId = '114603';
 
   final CaneRepository _repository = CaneRepository();
 
@@ -32,14 +36,13 @@ class _IncomeState extends State<Income_year> {
   final double colPrice = 90;
   final double colTotal = 110;
 
-  // --- Scroll Controllers ---
   final ScrollController _headerScrollCtrl = ScrollController();
   final ScrollController _bodyScrollCtrl = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    futureData = _repository.getCaneTransactions(userId);
+    futureData = _repository.getCaneTransactions(widget.username);
     _setupSyncedScrolling();
   }
 
@@ -70,7 +73,7 @@ class _IncomeState extends State<Income_year> {
 
   Future<void> _onRefresh() async {
     setState(() {
-      futureData = _repository.getCaneTransactions(userId);
+      futureData = _repository.getCaneTransactions(widget.username);
     });
   }
 

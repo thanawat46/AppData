@@ -62,9 +62,8 @@ class _ResetpasswordpageState extends State<Resetpasswordpage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // --- 1. ส่วนหัว (Header Gradient แบบไม่มีไอคอน) ---
             Container(
-              height: 100, // ลดความสูงลงเพราะไม่มีไอคอนแล้ว
+              height: 100,
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -75,10 +74,7 @@ class _ResetpasswordpageState extends State<Resetpasswordpage> {
                 borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30)),
               ),
             ),
-
             const SizedBox(height: 30),
-
-            // --- 2. แบบฟอร์ม (Form) ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 25),
               child: Form(

@@ -8,7 +8,6 @@ class CheckQueuePage extends StatefulWidget {
 }
 
 class _CheckQueuePageState extends State<CheckQueuePage> {
-  // สีหลักของแอป
   final Color primaryColor = const Color(0xFFE13E53);
   final Color backgroundColor = const Color(0xFFF5F5F5);
 
@@ -18,10 +17,7 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
       backgroundColor: backgroundColor,
       body: Column(
         children: [
-          // 1. ส่วนหัวด้านบน (รวม App Bar และ User Info ไว้ด้วยกัน)
           _buildCombinedHeader(),
-
-          // 2. ส่วนรายการคิว (List)
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -59,8 +55,6 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                   icon: Icons.person,
                 ),
                 const SizedBox(height: 20),
-
-                // ส่วนข้อมูลการติดต่อ
                 _buildContactInfo(),
                 const SizedBox(height: 30),
               ],
@@ -71,7 +65,6 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
     );
   }
 
-  // --- Widget ส่วนหัว (Custom Layout) ---
   Widget _buildCombinedHeader() {
     return Container(
       width: double.infinity,
@@ -93,7 +86,6 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
         bottom: false,
         child: Column(
           children: [
-            // ส่วนที่ 1: Custom App Bar (ปุ่มย้อนกลับ + ชื่อหน้า)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
               child: Row(
@@ -120,12 +112,10 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 40), // จัดสมดุล Title ให้อยู่ตรงกลาง
+                  const SizedBox(width: 40),
                 ],
               ),
             ),
-
-            // ส่วนที่ 2: ข้อมูลผู้ใช้ (User Info)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 25),
               child: Column(
@@ -190,9 +180,6 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
     );
   }
 
-  // --- Widget Helpers ---
-
-  // ปุ่มย้อนกลับแบบแก้ว (Glassmorphism Button)
   Widget _buildGlassButton({required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
@@ -207,7 +194,6 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
     );
   }
 
-  // สร้างการ์ดคิว
   Widget _buildQueueCard({
     required String title,
     required String roundInfo,
