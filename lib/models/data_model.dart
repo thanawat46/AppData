@@ -30,7 +30,7 @@ class CaneData {
   }
 }
 
-class QueueData {
+/*class QueueData {
   final String title;
   final int round;
   final int queue;
@@ -63,9 +63,9 @@ class QueueData {
       timeAgo: json['time_value'] ?? '0:00',
     );
   }
-}
+}*/
 
-class UserProfileData {
+/*class UserProfileData {
   final String fullName;
   final String email;
   final String phoneNumber;
@@ -92,33 +92,47 @@ class UserProfileData {
       profileImageUrl: json['image_url'] ?.toString() ?? '-',
     );
   }
-}
+}*/
 
 class PromotionData {
-  final String date;
-  final String item;
-  final int quantity;
-  final double price;
-  final double total;
-  final String type;
+  final DateTime? dateEff;
+  final String itemType;
+  final String itemName;
+  final double amount;
+  final String yearNum;
+  final String noYear;
 
   PromotionData({
-    required this.date,
-    required this.item,
-    required this.quantity,
-    required this.price,
-    required this.total,
-    required this.type,
+    required this.dateEff,
+    required this.itemType,
+    required this.itemName,
+    required this.amount,
+    required this.yearNum,
+    required this.noYear,
   });
 
   factory PromotionData.fromJson(Map<String, dynamic> json) {
     return PromotionData(
-      date: json['วันที่'] ?.toString() ?? 'ไม่ระบุวันที่',
-      item: json['รายการ'] ?.toString() ?? 'ไม่พบรายการ',
-      quantity: (json['จำนวน'] as num?)?.toInt() ?? 0,
-      price: (json['ราคา'] as num?)?.toDouble() ?? 0.0,
-      total: (json['รวม'] as num?)?.toDouble() ?? 0.0,
-      type: json['ประเภท'] ?.toString() ?? 'ไม่ระบุประเภท',
+      dateEff: json['DateEff'] != null ? DateTime.tryParse(json['DateEff']) : null,
+      itemType: json['ItemType']?.toString() ?? '',
+      itemName: json['ItemName']?.toString() ?? 'ไม่พบชื่อรายการ',
+      amount: (json['Amount'] as num?)?.toDouble() ?? 0.0,
+      yearNum: json['YearNum']?.toString() ?? '',
+      noYear: json['NoYear']?.toString() ?? '',
+    );
+  }
+}
+
+class CaneYear {
+  final String noYear;
+  final String yearNum;
+
+  CaneYear({required this.noYear, required this.yearNum});
+
+  factory CaneYear.fromJson(Map<String, dynamic> json) {
+    return CaneYear(
+      noYear: json['NoYear']?.toString() ?? '',
+      yearNum: json['YearNum']?.toString() ?? '',
     );
   }
 }

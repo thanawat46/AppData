@@ -259,7 +259,7 @@ class MainMenu extends StatelessWidget {
                           _buildMenuItem(context, icon: Icons.receipt_long_rounded, label: 'อ้อย(CCS)', color: Colors.orange, page: Income_year(username: username)),
                           _buildMenuItem(context, icon: Icons.local_shipping_rounded, label: 'คิวรถอ้อย', color: Colors.blue, page: const CheckQueuePage()),
                           _buildMenuItem(context, icon: Icons.map_rounded, label: 'รายการแปลง', color: Colors.grey, isComingSoon: true),
-                          _buildMenuItem(context, icon: Icons.support_agent_rounded, label: 'ส่งเสริม', color: Colors.purple, page: const Promote_API()),
+                          _buildMenuItem(context, icon: Icons.support_agent_rounded, label: 'ส่งเสริม', color: Colors.purple, page: Promote_API(username: username)),
                           _buildMenuItem(context, icon: Icons.qr_code_scanner_rounded, label: 'QR Code', color: Colors.grey, isComingSoon: true),
                           _buildMenuItem(context, icon: Icons.newspaper_rounded, label: 'ข่าวสาร', color: Colors.grey, isComingSoon: true),
                           _buildMenuItem(context, icon: Icons.info_outline_rounded, label: 'Info', color: Colors.teal, page: Profilepage(username: username)),

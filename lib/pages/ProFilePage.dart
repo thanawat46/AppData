@@ -20,6 +20,20 @@ class _ProfilepageState extends State<Profilepage> {
   final Color secondaryRed = const Color(0xFFFF6B6B);
   final Color bgSoft = const Color(0xFFF5F7FA);
 
+  Widget _buildGlassButton({required IconData icon, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.25),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: Colors.white, size: 20),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,14 +45,12 @@ class _ProfilepageState extends State<Profilepage> {
         centerTitle: true,
         leading: widget.showBackButton
             ? Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            shape: BoxShape.circle,
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
-            onPressed: () => Navigator.of(context).pop(),
+          margin: const EdgeInsets.only(left: 15),
+          child: Center(
+            child: _buildGlassButton(
+              icon: Icons.arrow_back_ios_new,
+              onTap: () => Navigator.of(context).pop(),
+            ),
           ),
         )
             : null,
@@ -133,8 +145,6 @@ class _ProfilepageState extends State<Profilepage> {
             ),
 
             const SizedBox(height: 40),
-
-            // --- 4. ปุ่มออกจากระบบ ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: ElevatedButton(
@@ -181,6 +191,8 @@ class _ProfilepageState extends State<Profilepage> {
               ),
             ),
             const SizedBox(height: 40),
+
+            // Footer Info
             Column(
               children: [
                 Row(
@@ -197,27 +209,8 @@ class _ProfilepageState extends State<Profilepage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const SizedBox(width: 2),
                     Text(
-                        "Thanawat No",
-                        style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold
-                        )
-                    ),
-                    const SizedBox(width: 2),
-                    Text(
-                        "&",
-                        style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold
-                        )
-                    ),
-                    const SizedBox(width: 2),
-                    Text(
-                        "Teerut Fa",
+                        "Thanawat No & Teerut Fa",
                         style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 12,
@@ -228,7 +221,6 @@ class _ProfilepageState extends State<Profilepage> {
                 ),
               ],
             ),
-
             const SizedBox(height: 30),
           ],
         ),

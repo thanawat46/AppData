@@ -17,10 +17,23 @@ class _ResetpasswordpageState extends State<Resetpasswordpage> {
   bool _isNewPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
-  // Theme Colors
   final Color primaryRed = const Color(0xFFE13E53);
   final Color secondaryRed = const Color(0xFFFF6B6B);
   final Color softBg = const Color(0xFFF5F7FA);
+
+  Widget _buildGlassButton({required IconData icon, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.25),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: Colors.white, size: 20),
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -39,15 +52,13 @@ class _ResetpasswordpageState extends State<Resetpasswordpage> {
         elevation: 0,
         backgroundColor: Colors.transparent,
         centerTitle: true,
-        leading: Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            shape: BoxShape.circle,
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
-            onPressed: () => Navigator.of(context).pop(),
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 10),
+          child: Center(
+            child: _buildGlassButton(
+              icon: Icons.arrow_back_ios_new,
+              onTap: () => Navigator.of(context).pop(),
+            ),
           ),
         ),
         title: const Text(
@@ -63,7 +74,7 @@ class _ResetpasswordpageState extends State<Resetpasswordpage> {
         child: Column(
           children: [
             Container(
-              height: 100,
+              height: 120,
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -92,7 +103,6 @@ class _ResetpasswordpageState extends State<Resetpasswordpage> {
                       style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                     ),
                     const SizedBox(height: 30),
-
                     _buildModernPasswordField(
                       controller: _oldPasswordController,
                       label: "รหัสผ่านเดิม",
@@ -101,9 +111,7 @@ class _ResetpasswordpageState extends State<Resetpasswordpage> {
                       onToggle: () => setState(() => _isOldPasswordVisible = !_isOldPasswordVisible),
                       validator: (value) => value == null || value.isEmpty ? 'กรุณากรอกรหัสผ่านเดิม' : null,
                     ),
-
                     const SizedBox(height: 20),
-
                     _buildModernPasswordField(
                       controller: _newPasswordController,
                       label: "รหัสผ่านใหม่",
@@ -116,9 +124,7 @@ class _ResetpasswordpageState extends State<Resetpasswordpage> {
                         return null;
                       },
                     ),
-
                     const SizedBox(height: 20),
-
                     _buildModernPasswordField(
                       controller: _confirmPasswordController,
                       label: "ยืนยันรหัสผ่านใหม่",
@@ -131,49 +137,42 @@ class _ResetpasswordpageState extends State<Resetpasswordpage> {
                         return null;
                       },
                     ),
-
                     const SizedBox(height: 40),
-
-                    // --- 3. ปุ่มบันทึก (Gradient Button) ---
-                    Container(
-                      width: double.infinity,
-                      height: 55,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [primaryRed, secondaryRed],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: primaryRed.withOpacity(0.3),
-                            blurRadius: 15,
-                            offset: const Offset(0, 8),
+                    GestureDetector(
+                      onTap: () {
+                        if (_formKey.currentState!.validate()) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('เปลี่ยนรหัสผ่านเรียบร้อยแล้ว'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                          Navigator.pop(context);
+                        }
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        height: 55,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [primaryRed, secondaryRed],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
                           ),
-                        ],
-                      ),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            // TODO: Add logic here
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('เปลี่ยนรหัสผ่านเรียบร้อยแล้ว'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                            Navigator.pop(context);
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryRed.withOpacity(0.3),
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
                         ),
-                        child: const Text(
-                          'บันทึกรหัสผ่าน',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                        child: const Center(
+                          child: Text(
+                            'บันทึกรหัสผ่าน',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
                         ),
                       ),
                     ),
@@ -188,7 +187,6 @@ class _ResetpasswordpageState extends State<Resetpasswordpage> {
     );
   }
 
-  // Widget สร้างช่องกรอกรหัสผ่านแบบ Modern
   Widget _buildModernPasswordField({
     required TextEditingController controller,
     required String label,

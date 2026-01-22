@@ -1,124 +1,119 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../models/data_model.dart';
+import '../repositories/cane_repository.dart';
 
-// --- Model Class ---
-class PromotionData {
-  final String date;
-  final String item;
-  final int quantity;
-  final double price;
-  final double total;
-  final String type;
+class SummaryCategory {
+  final String typeId;
+  final String title;
+  final IconData icon;
+  final Color color;
+  int countYear1 = 0;
+  double amountYear1 = 0.0;
+  int countYear2 = 0;
+  double amountYear2 = 0.0;
 
-  PromotionData({
-    required this.date,
-    required this.item,
-    required this.quantity,
-    required this.price,
-    required this.total,
-    required this.type,
+  SummaryCategory({
+    required this.typeId,
+    required this.title,
+    required this.icon,
+    required this.color,
   });
-
-  factory PromotionData.fromJson(Map<String, dynamic> json) {
-    return PromotionData(
-      date: json['วันที่'] ?? '',
-      item: json['รายการ'] ?? '',
-      quantity: (json['จำนวน'] as num?)?.toInt() ?? 0,
-      price: (json['ราคา'] as num?)?.toDouble() ?? 0.0,
-      total: (json['รวม'] as num?)?.toDouble() ?? 0.0,
-      type: json['ประเภท'] ?? '',
-    );
-  }
 }
 
 class Promote_API extends StatefulWidget {
-  const Promote_API({super.key});
+  final String username;
+  Promote_API({
+    super.key,
+    required this.username,
+  });
 
   @override
   State<Promote_API> createState() => _State();
 }
 
 class _State extends State<Promote_API> {
-  // Theme Colors
   final Color primaryColor = const Color(0xFFE13E53);
   final Color backgroundColor = const Color(0xFFF5F7FA);
-
-  List<PromotionData> _allData = [];
-  List<PromotionData> _filteredData = [];
-  bool _isLoading = true;
-
-  String _selectedFilter = 'ทั้งหมด';
-  final List<String> _filterOptions = ['ทั้งหมด', 'ปุ๋ย', 'ยา', 'เงินสด', 'ปุ๋ย+ยา'];
-
   final numberFormat = NumberFormat("#,##0.00", "en_US");
+  final CaneRepository _repository = CaneRepository();
+  bool _isLoading = true;
+  String _selectedFilter = 'ทั้งหมด';
+  List<String> _filterOptions = ['ทั้งหมด'];
+  List<CaneYear> _apiYears = [];
+  List<SummaryCategory> _categories = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchAndSetData();
+    _loadAllData();
   }
 
-  Future<void> _fetchAndSetData() async {
-    const url = 'ใส่ API ที่ใช้ดึง'; // TODO: ใส่ URL จริง
-    final dio = Dio();
-
-    await Future.delayed(const Duration(seconds: 1)); // Mock delay
-    final mockData = [
-      {'วันที่': '01/01/2024', 'รายการ': 'ปุ๋ยยูเรีย 46-0-0', 'จำนวน': 10, 'ราคา': 850.0, 'รวม': 8500.0, 'ประเภท': 'ปุ๋ย'},
-      {'วันที่': '05/01/2024', 'รายการ': 'ยาฆ่าหญ้า', 'จำนวน': 5, 'ราคา': 450.0, 'รวม': 2250.0, 'ประเภท': 'ยา'},
-      {'วันที่': '10/01/2024', 'รายการ': 'เงินกู้ยืม', 'จำนวน': 1, 'ราคา': 5000.0, 'รวม': 5000.0, 'ประเภท': 'เงินสด'},
-      {'วันที่': '15/01/2024', 'รายการ': 'ปุ๋ยสูตรเสมอ 15-15-15', 'จำนวน': 20, 'ราคา': 900.0, 'รวม': 18000.0, 'ประเภท': 'ปุ๋ย'},
-    ];
-
+  Future<void> _loadAllData() async {
     try {
-      // Mock Data (เปลี่ยนเป็น API จริงตรงนี้ได้เลย)
-      setState(() {
-        _allData = mockData.map((data) => PromotionData.fromJson(data)).toList();
-        _isLoading = false;
-        _applyFilter();
-      });
+      final years = await _repository.getCaneYears();
+      final promotions = await _repository.getPromotionItems(widget.username);
+
+      if (mounted) {
+        setState(() {
+          _apiYears = years;
+          _filterOptions = ['ทั้งหมด', ...years.map((e) => e.yearNum)];
+          _setupInitialCategories();
+          _processPromotionSummary(promotions);
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      print("Error fetching data: $e");
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('เกิดข้อผิดพลาด: $e'), backgroundColor: primaryColor),
+        );
+      }
     }
   }
 
-  void _applyFilter() {
-    if (_selectedFilter == 'ทั้งหมด') {
-      _filteredData = List.from(_allData);
-    } else if (_selectedFilter == 'ปุ๋ย+ยา') {
-      _filteredData = _allData.where((data) => data.type == 'ปุ๋ย' || data.type == 'ยา').toList();
-    } else if (_selectedFilter == 'เงินสด') {
-      _filteredData = _allData.where((data) => data.type != 'ปุ๋ย' && data.type != 'ยา').toList();
-    } else {
-      _filteredData = _allData.where((data) => data.type == _selectedFilter).toList();
-    }
+  void _setupInitialCategories() {
+    _categories = [
+      SummaryCategory(typeId: '1', title: 'เงิน', icon: Icons.monetization_on_rounded, color: Colors.blue.shade700),
+      SummaryCategory(typeId: '2', title: 'ปุ๋ย', icon: Icons.grass_rounded, color: Colors.green.shade700),
+      SummaryCategory(typeId: '3', title: 'ยา', icon: Icons.science_rounded, color: Colors.orange.shade800),
+      SummaryCategory(typeId: '4', title: 'รถไถร่วม', icon: Icons.agriculture_rounded, color: Colors.deepPurple.shade700),
+      SummaryCategory(typeId: '5', title: 'อื่น ๆ', icon: Icons.category_rounded, color: Colors.grey.shade700),
+    ];
   }
 
-  IconData _getIconForType(String type) {
-    switch (type) {
-      case 'ปุ๋ย': return Icons.grass_rounded;
-      case 'ยา': return Icons.science_rounded;
-      case 'เงินสด': return Icons.monetization_on_rounded;
-      case 'ปุ๋ย+ยา': return Icons.layers_rounded;
-      default: return Icons.grid_view_rounded;
+  void _processPromotionSummary(List<PromotionData> data) {
+    if (_apiYears.isEmpty) return;
+
+    String year1 = _apiYears.isNotEmpty ? _apiYears[0].yearNum : "";
+    String year2 = _apiYears.length > 1 ? _apiYears[1].yearNum : "";
+
+    for (var item in data) {
+      var category = _categories.firstWhere(
+            (c) => c.typeId == item.itemType,
+        orElse: () => _categories.last,
+      );
+
+      if (item.yearNum == year1) {
+        category.countYear1++;
+        category.amountYear1 += item.amount;
+      } else if (item.yearNum == year2) {
+        category.countYear2++;
+        category.amountYear2 += item.amount;
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: primaryColor, // พื้นหลังหลักเป็นสีแดง เพื่อให้ Header เนียน
+      backgroundColor: primaryColor,
       body: Stack(
         children: [
-          // ส่วนเนื้อหาหลัก (สีขาว/เทาอ่อน)
           Column(
             children: [
-              // พื้นที่ส่วนหัว (Placeholder สำหรับ Header)
-              Container(height: 100, color: primaryColor), // ปรับความสูงตามต้องการ
-
-              // ส่วนพื้นที่สีขาวโค้งมนด้านล่าง
+              Container(height: 100, color: primaryColor),
               Expanded(
                 child: Container(
                   width: double.infinity,
@@ -129,92 +124,20 @@ class _State extends State<Promote_API> {
                       topRight: Radius.circular(30.0),
                     ),
                   ),
-                  child: Column(
+                  child: _isLoading
+                      ? Center(child: CircularProgressIndicator(color: primaryColor))
+                      : Column(
                     children: [
-                      // --- Dropdown Filter ---
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(25, 25, 25, 15),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(30),
-                            boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 10, offset: const Offset(0, 4))
-                            ],
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: ButtonTheme(
-                              alignedDropdown: true,
-                              child: DropdownButton<String>(
-                                value: _selectedFilter,
-                                isExpanded: true,
-                                icon: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: primaryColor.withOpacity(0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(Icons.keyboard_arrow_down_rounded, color: primaryColor, size: 20),
-                                ),
-                                style: const TextStyle(color: Colors.black87, fontSize: 16, fontWeight: FontWeight.w600),
-                                dropdownColor: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                onChanged: (String? newValue) {
-                                  setState(() {
-                                    _selectedFilter = newValue!;
-                                    _applyFilter();
-                                  });
-                                },
-                                items: _filterOptions.map<DropdownMenuItem<String>>((String value) {
-                                  return DropdownMenuItem<String>(
-                                    value: value,
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          _getIconForType(value),
-                                          size: 20,
-                                          color: value == _selectedFilter ? primaryColor : Colors.grey[400],
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Text(
-                                          value,
-                                          style: TextStyle(
-                                            color: value == _selectedFilter ? primaryColor : Colors.black87,
-                                            fontWeight: value == _selectedFilter ? FontWeight.bold : FontWeight.normal,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                          ),
-                        ),
+                        padding: const EdgeInsets.fromLTRB(25, 25, 25, 10),
+                        child: _buildFilterDropdown(),
                       ),
-
-                      // --- List Data ---
                       Expanded(
-                        child: _isLoading
-                            ? Center(child: CircularProgressIndicator(color: primaryColor))
-                            : _filteredData.isEmpty
-                            ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.search_off_rounded, size: 70, color: Colors.grey[300]),
-                              const SizedBox(height: 10),
-                              Text('ไม่พบข้อมูล $_selectedFilter', style: TextStyle(color: Colors.grey[500], fontSize: 16)),
-                            ],
-                          ),
-                        )
-                            : ListView.builder(
-                          itemCount: _filteredData.length,
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                        child: ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                          itemCount: _categories.length,
                           itemBuilder: (context, index) {
-                            final item = _filteredData[index];
-                            return _buildListItem(item);
+                            return _buildSummaryCard(_categories[index]);
                           },
                         ),
                       ),
@@ -224,143 +147,256 @@ class _State extends State<Promote_API> {
               ),
             ],
           ),
-
-          // --- Custom Header (ลอยอยู่ด้านบนสุด) ---
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
-              child: Row(
-                children: [
-                  // 1. ปุ่มย้อนกลับแบบแก้ว (Custom Back Button)
-                  _buildGlassButton(
-                    icon: Icons.arrow_back_ios_new,
-                    onTap: () => Navigator.of(context).pop(),
-                  ),
-
-                  // 2. Title
-                  const Expanded(
-                    child: Text(
-                      "รายการส่งเสริม",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 22,
-                        color: Colors.white,
-                        shadows: [Shadow(offset: Offset(0, 1), blurRadius: 3.0, color: Colors.black26)],
-                      ),
-                    ),
-                  ),
-
-                  // 3. จัดสมดุล
-                  const SizedBox(width: 40),
-                ],
-              ),
-            ),
-          ),
+          _buildHeader(context),
         ],
       ),
     );
   }
 
-  // Widget: สร้างรายการแต่ละแถว
-  Widget _buildListItem(PromotionData item) {
-    Color themeColor;
-    Color lightBg;
-    if (item.type == 'ปุ๋ย') {
-      themeColor = Colors.green.shade700;
-      lightBg = Colors.green.shade50;
-    } else if (item.type == 'ยา') {
-      themeColor = Colors.orange.shade800;
-      lightBg = Colors.orange.shade50;
-    } else if (item.type == 'เงินสด') {
-      themeColor = Colors.blue.shade700;
-      lightBg = Colors.blue.shade50;
-    } else {
-      themeColor = Colors.purple.shade700;
-      lightBg = Colors.purple.shade50;
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+  Widget _buildFilterDropdown() {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: primaryColor.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 10)),
+        ],
+        border: Border.all(
+          color: _selectedFilter != 'ทั้งหมด' ? primaryColor.withOpacity(0.3) : Colors.grey.withOpacity(0.1),
+          width: 1.5,
+        ),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedFilter,
+          isExpanded: true,
+          icon: Icon(Icons.unfold_more_rounded, color: primaryColor, size: 24),
+          style: const TextStyle(fontFamily: 'Kanit', fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
+          dropdownColor: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          onChanged: (String? newValue) => setState(() => _selectedFilter = newValue!),
+          items: _filterOptions.map<DropdownMenuItem<String>>((String value) {
+            bool isActive = _selectedFilter == value;
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Row(
+                children: [
+                  Icon(
+                    value == 'ทั้งหมด' ? Icons.dashboard_customize_rounded : Icons.calendar_month_rounded,
+                    size: 18, color: isActive ? primaryColor : Colors.grey[400],
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    value == 'ทั้งหมด' ? "แสดงข้อมูลทุกปี" : "ปี $value",
+                    style: TextStyle(color: isActive ? primaryColor : Colors.black87, fontWeight: isActive ? FontWeight.bold : FontWeight.normal),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard(SummaryCategory category) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(color: category.color.withOpacity(0.12), blurRadius: 20, offset: const Offset(0, 10)),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: lightBg,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: themeColor.withOpacity(0.2)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 15),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [category.color.withOpacity(0.2), category.color.withOpacity(0.05)],
+                      ),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Icon(category.icon, color: category.color, size: 24),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(_getIconForType(item.type), size: 14, color: themeColor),
-                      const SizedBox(width: 5),
-                      Text(item.type, style: TextStyle(color: themeColor, fontSize: 12, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-                Text(item.date, style: TextStyle(color: Colors.grey[500], fontSize: 12)),
-              ],
+                  const SizedBox(width: 15),
+                  Text(category.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                  const Spacer(),
+                ],
+              ),
             ),
-            const SizedBox(height: 10),
-            Text(item.item, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
-            const SizedBox(height: 15),
-            LayoutBuilder(builder: (context, constraints) {
-              return Flex(
-                direction: Axis.horizontal,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate((constraints.constrainWidth() / 10).floor(), (_) => SizedBox(width: 5, height: 1, child: DecoratedBox(decoration: BoxDecoration(color: Colors.grey[300])))),
-              );
-            }),
-            const SizedBox(height: 15),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("จำนวน", style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-                    Text("${item.quantity} หน่วย", style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text("ราคารวม", style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-                    Text("${numberFormat.format(item.total)} ฿", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryColor)),
-                  ],
-                ),
-              ],
-            )
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: _selectedFilter == 'ทั้งหมด'
+                  ? Row(
+                children: [
+                  if (_apiYears.isNotEmpty)
+                    Expanded(child: _buildModernData("ปี ${_apiYears[0].yearNum}", category.countYear1, category.amountYear1, category.color)),
+                  const SizedBox(width: 12),
+                  if (_apiYears.length > 1)
+                    Expanded(child: _buildModernData("ปี ${_apiYears[1].yearNum}", category.countYear2, category.amountYear2, category.color)),
+                ],
+              )
+                  : _buildModernData(
+                "ปีเพาะปลูก $_selectedFilter",
+                _selectedFilter == (_apiYears.isNotEmpty ? _apiYears[0].yearNum : '') ? category.countYear1 : category.countYear2,
+                _selectedFilter == (_apiYears.isNotEmpty ? _apiYears[0].yearNum : '') ? category.amountYear1 : category.amountYear2,
+                category.color,
+                isFull: true,
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildPremiumDetailButton(category),
           ],
         ),
       ),
     );
   }
 
-  // Widget: ปุ่มย้อนกลับสไตล์ Glassmorphism
+  Widget _buildModernData(String label, int count, double amount, Color themeColor, {bool isFull = false}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: backgroundColor.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: isFull ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        children: [
+          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: themeColor.withOpacity(0.7))),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: isFull ? MainAxisAlignment.start : MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text("$count", style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Color(0xFF2D3436))),
+              const SizedBox(width: 4),
+              const Text("รายการ", style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text("${numberFormat.format(amount)} ฿", style: TextStyle(fontSize: isFull ? 20 : 15, fontWeight: FontWeight.w700, color: themeColor)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumDetailButton(SummaryCategory category) {
+    return Material(
+      color: category.color.withOpacity(0.04),
+      child: InkWell(
+        onTap: () => _selectedFilter == 'ทั้งหมด' ? _showYearSelectionDialog(category) : debugPrint("Detail Page"),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(border: Border(top: BorderSide(color: category.color.withOpacity(0.08)))),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("ดูรายละเอียดเพิ่มเติม", style: TextStyle(color: category.color, fontWeight: FontWeight.w800, fontSize: 14)),
+              const SizedBox(width: 8),
+              Icon(Icons.arrow_right_alt_rounded, color: category.color, size: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showYearSelectionDialog(SummaryCategory category) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 20),
+          decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20), decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10))),
+              const Text("เลือกปีที่ต้องการดู", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              ..._apiYears.asMap().entries.map((entry) {
+                int idx = entry.key;
+                CaneYear year = entry.value;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildPopupYearOption(
+                      category, year.yearNum,
+                      idx == 0 ? category.countYear1 : category.countYear2,
+                      idx == 0 ? category.amountYear1 : category.amountYear2
+                  ),
+                );
+              }).toList(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPopupYearOption(SummaryCategory category, String year, int count, double amount) {
+    return InkWell(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: category.color.withOpacity(0.05), borderRadius: BorderRadius.circular(15)),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today_rounded, color: category.color, size: 20),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("ปี $year", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text("$count รายการ | ${numberFormat.format(amount)} ฿", style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios_rounded, color: category.color, size: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+        child: Row(
+          children: [
+            _buildGlassButton(icon: Icons.arrow_back_ios_new, onTap: () => Navigator.pop(context)),
+            const Expanded(
+              child: Text("รายการส่งเสริม", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white)),
+            ),
+            const SizedBox(width: 40),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildGlassButton({required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.25),
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration: BoxDecoration(color: Colors.white.withOpacity(0.25), borderRadius: BorderRadius.circular(12)),
         child: Icon(icon, color: Colors.white, size: 20),
       ),
     );
