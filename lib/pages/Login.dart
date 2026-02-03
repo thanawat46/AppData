@@ -6,6 +6,7 @@ import '../services/auth_storage_service.dart';
 import 'ListView_Choice.dart';
 import 'ResetPasswordPage.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:url_launcher/url_launcher.dart';
 
 class LoginPage extends StatefulWidget {
   final bool sessionExpired;
@@ -236,9 +237,20 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
 
   static const platform = MethodChannel('com.kisugar.app/launcher');
   Future<void> _launchFacebook() async {
+    final Uri url = Uri.parse('https://www.facebook.com/kisugargroup');
+
     try {
-      await platform.invokeMethod('openUrl', {'url': 'https://www.facebook.com/kisugargroup'});
-    } on PlatformException catch (e) { debugPrint(e.message); }
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        throw Exception('Could not launch $url');
+      }
+    } catch (e) {
+      debugPrint('Error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('ไม่สามารถเปิด Facebook ได้ในขณะนี้')),
+        );
+      }
+    }
   }
 
   @override
@@ -317,7 +329,10 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
                         ),
                         TextButton(
                             onPressed: () {
-
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const Resetpasswordpage()),
+                              );
                         },
                             child: const Text("ลืมรหัสผ่าน?", style: TextStyle(color: Colors.grey))),
                       ],
