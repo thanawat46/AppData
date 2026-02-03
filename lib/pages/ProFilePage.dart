@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'Login.dart';
+import '../services/auth_storage_service.dart';
 
 class Profilepage extends StatefulWidget {
   final bool showBackButton;
@@ -148,30 +149,38 @@ class _ProfilepageState extends State<Profilepage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: ElevatedButton(
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                        title: const Text("ยืนยันการออก", style: TextStyle(fontWeight: FontWeight.bold)),
-                        content: const Text("คุณต้องการออกจากระบบใช่หรือไม่?"),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("ยกเลิก", style: TextStyle(color: Colors.grey))),
-                          TextButton(
-                              onPressed: () {
-                                Navigator.pop(ctx);
-                                Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const LoginPage()),
-                                      (Route<dynamic> route) => false,
-                                );
-                              },
-                              child: Text("ออก", style: TextStyle(color: primaryRed, fontWeight: FontWeight.bold))
-                          ),
-                        ],
-                      )
-                  );
-                },
+                  onPressed: () {
+                    final AuthStorageService storageService = AuthStorageService();
+
+                    showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                          title: const Text("ยืนยันการออก", style: TextStyle(fontWeight: FontWeight.bold)),
+                          content: const Text("คุณต้องการออกจากระบบใช่หรือไม่?\nข้อมูลการจดจำรหัสผ่านจะถูกล้างออก"),
+                          actions: [
+                            TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: const Text("ยกเลิก", style: TextStyle(color: Colors.grey))
+                            ),
+                            TextButton(
+                                onPressed: () async {
+                                  Navigator.pop(ctx);
+                                  await storageService.saveCredentials('', '', false);
+                                  if (context.mounted) {
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                                          (Route<dynamic> route) => false,
+                                    );
+                                  }
+                                },
+                                child: Text("ออก", style: TextStyle(color: primaryRed, fontWeight: FontWeight.bold))
+                            ),
+                          ],
+                        )
+                    );
+                  },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: primaryRed,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/data_model.dart';
 import '../repositories/cane_repository.dart';
+import 'Detail_API.dart';
 
 class SummaryCategory {
   final String typeId;
@@ -42,6 +43,7 @@ class _State extends State<Promote_API> {
   List<String> _filterOptions = ['ทั้งหมด'];
   List<CaneYear> _apiYears = [];
   List<SummaryCategory> _categories = [];
+  List<PromotionData> _allPromotions = []; // เก็บข้อมูลทั้งหมดที่ดึงมาจาก API
 
   @override
   void initState() {
@@ -57,6 +59,7 @@ class _State extends State<Promote_API> {
       if (mounted) {
         setState(() {
           _apiYears = years;
+          _allPromotions = promotions; // บันทึกข้อมูลเพื่อใช้ส่งต่อ
           _filterOptions = ['ทั้งหมด', ...years.map((e) => e.yearNum)];
           _setupInitialCategories();
           _processPromotionSummary(promotions);
@@ -103,6 +106,25 @@ class _State extends State<Promote_API> {
         category.amountYear2 += item.amount;
       }
     }
+  }
+
+  void _navigateToDetails(SummaryCategory category, String? yearNum) {
+    List<PromotionData> filteredList = _allPromotions.where((item) {
+      bool matchCategory = item.itemType == category.typeId || (category.typeId == '5' && !['1','2','3','4'].contains(item.itemType));
+      bool matchYear = yearNum == null || item.yearNum == yearNum;
+      return matchCategory && matchYear;
+    }).toList();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Detail_API(
+          title: "รายละเอียด : ${yearNum != null ? 'ปี $yearNum' : ''}",
+          data: filteredList,
+          color: category.color,
+        ),
+      ),
+    );
   }
 
   @override
@@ -297,7 +319,13 @@ class _State extends State<Promote_API> {
     return Material(
       color: category.color.withOpacity(0.04),
       child: InkWell(
-        onTap: () => _selectedFilter == 'ทั้งหมด' ? _showYearSelectionDialog(category) : debugPrint("Detail Page"),
+        onTap: () {
+          if (_selectedFilter == 'ทั้งหมด') {
+            _showYearSelectionDialog(category);
+          } else {
+            _navigateToDetails(category, _selectedFilter);
+          }
+        },
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -350,7 +378,10 @@ class _State extends State<Promote_API> {
 
   Widget _buildPopupYearOption(SummaryCategory category, String year, int count, double amount) {
     return InkWell(
-      onTap: () => Navigator.pop(context),
+      onTap: () {
+        Navigator.pop(context);
+        _navigateToDetails(category, year);
+      },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: category.color.withOpacity(0.05), borderRadius: BorderRadius.circular(15)),

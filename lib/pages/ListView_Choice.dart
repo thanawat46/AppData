@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../services/auth_storage_service.dart';
 import 'CheckQueuePage.dart';
 import 'Income_year.dart';
 import 'Login.dart';
@@ -350,6 +351,8 @@ class MainMenu extends StatelessWidget {
   }
 
   Widget _buildLogoutItem(BuildContext context) {
+    final AuthStorageService storageService = AuthStorageService();
+
     return _BaseMenuButton(
       icon: Icons.logout_rounded,
       label: 'ออกจากระบบ',
@@ -359,20 +362,27 @@ class MainMenu extends StatelessWidget {
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
             title: const Text("ยืนยันการออกจากระบบ"),
-            content: const Text("คุณต้องการออกจากระบบใช่หรือไม่?"),
+            content: const Text("คุณต้องการออกจากระบบใช่หรือไม่?\nข้อมูลการจดจำรหัสผ่านจะถูกล้างออก"),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("ยกเลิก")),
               TextButton(
-                onPressed: () {
-                  Navigator.pop(ctx); // ปิด Dialog
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                        (Route<dynamic> route) => false,
-                  );
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text("ยกเลิก", style: TextStyle(color: Colors.grey))
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  await storageService.saveCredentials('', '', false);
+                  if (context.mounted) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                          (Route<dynamic> route) => false,
+                    );
+                  }
                 },
-                child: const Text("ออกจากระบบ", style: TextStyle(color: Colors.red)),
+                child: const Text("ออกจากระบบ", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
               ),
             ],
           ),

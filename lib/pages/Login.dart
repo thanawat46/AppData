@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import '../repositories/cane_repository.dart';
+import '../services/auth_storage_service.dart';
 import 'ListView_Choice.dart';
 import 'ResetPasswordPage.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final bool sessionExpired;
+  const LoginPage({super.key, this.sessionExpired = false});
 
   @override
   State<LoginPage> createState() => _LoginState();
@@ -21,6 +23,7 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
   bool _isObscure = true;
   bool _isRememberMe = false;
   bool _isLoading = false;
+  final AuthStorageService _storageService = AuthStorageService();
 
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
@@ -31,8 +34,91 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
     _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
     _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
     _animController.forward();
+    _loadSavedData();
+    if (widget.sessionExpired) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showSessionExpiredSnackBar();
+      });
+    }
   }
 
+  void _showSessionExpiredSnackBar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        duration: const Duration(seconds: 4),
+        content: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFE13E53),
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFE13E53).withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.history_toggle_off_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 15),
+              const Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'หมดเวลาการเชื่อมต่อ',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      'กรุณาเข้าสู่ระบบใหม่อีกครั้ง',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                },
+                icon: const Icon(Icons.close, color: Colors.white70, size: 18),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+        ),
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).size.height * 0.02,
+          left: 20,
+          right: 20,
+        ),
+      ),
+    );
+  }
   @override
   void dispose() {
     _quotaCodeController.dispose();
@@ -41,20 +127,26 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
+  Future<void> _loadSavedData() async {
+    final data = await _storageService.getCredentials();
+    if (data['isRemember'].toString() == 'true') {
+      setState(() {
+        _quotaCodeController.text = data['quota'] ?? '';
+        _idCardController.text = data['password'] ?? '';
+        _isRememberMe = true;
+      });
+    }
+  }
+
   Future<void> _handleLoginButtonPress() async {
     FocusScope.of(context).unfocus();
-
     final isQuotaValid = _quotaCodeController.text.isNotEmpty;
     final isIdCardValid = _idCardController.text.isNotEmpty;
-
     setState(() {
       _quotaErrorText = isQuotaValid ? null : 'กรุณากรอกรหัสโควต้า';
       _idCardErrorText = isIdCardValid ? null : 'กรุณากรอกรหัสผ่าน';
     });
-
-    if (!isQuotaValid || !isIdCardValid) {
-      return;
-    }
+    if (!isQuotaValid || !isIdCardValid) return;
     _performLogin();
   }
 
@@ -63,76 +155,23 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
       context: context,
       builder: (ctx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
         child: Container(
           padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.rectangle,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 10,
-                offset: Offset(0, 10),
-              ),
-            ],
-          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Container(
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE13E53).withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.error_rounded,
-                  size: 40,
-                  color: Color(0xFFE13E53),
-                ),
-              ),
+            children: [
+              const Icon(Icons.error_rounded, size: 40, color: Color(0xFFE13E53)),
               const SizedBox(height: 20),
-              const Text(
-                "แจ้งเตือน",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2D3142),
-                ),
-              ),
+              const Text("แจ้งเตือน", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
-              Text(
-                message,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
-                textAlign: TextAlign.center,
-              ),
+              Text(message, textAlign: TextAlign.center),
               const SizedBox(height: 25),
               SizedBox(
                 width: double.infinity,
-                height: 45,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE13E53),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    "ตกลง",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
+                  onPressed: () => Navigator.pop(ctx),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE13E53)),
+                  child: const Text("ตกลง", style: TextStyle(color: Colors.white)),
                 ),
               ),
             ],
@@ -144,17 +183,10 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
 
   void _performLogin() async {
     if (mounted) setState(() => _isLoading = true);
-
     try {
-      String code = _quotaCodeController.text.trim();
-      String id = _idCardController.text.trim();
-
-      if (code.isEmpty || id.isEmpty) {
-        if (mounted) setState(() => _isLoading = false);
-        return;
-      }
-
-      Map<String, String> dataMap = { "uxxname": code, "pxxword": id };
+      final String code = _quotaCodeController.text.trim();
+      final String id = _idCardController.text.trim();
+      Map<String, String> dataMap = {"uxxname": code, "pxxword": id};
       String plainText = jsonEncode(dataMap);
       final key = encrypt.Key.fromUtf8('MySecret1234ABCD');
       final iv = encrypt.IV.fromUtf8('Salt123456789012');
@@ -164,80 +196,49 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
 
       AuthService authService = AuthService();
       var response = await authService.loginWithEncryptedData(encryptedResult);
-      print("Login Response: $response");
 
       bool isSuccess = false;
-      String errorMessage = "ไม่สามารถเข้าสู่ระบบได้";
-
       if (response != null && response is Map) {
-        final successVal = response['success'];
-        if (successVal == true || successVal == "true") {
-          isSuccess = true;
-        }
-
-        if (!isSuccess) {
-          dynamic serverError = response['errorMessage'] ?? response['msg'] ?? response['error'];
-
-          if (serverError != null) {
-            String errStr = serverError.toString().toLowerCase();
-            if (errStr.contains("invalid") || errStr.contains("fail")) {
-              errorMessage = "รหัสโควต้าหรือรหัสผ่านไม่ถูกต้อง";
-            } else {
-              errorMessage = serverError.toString();
-            }
-          } else {
-            errorMessage = "ตรวจสอบรหัสโควต้าและรหัสผ่านอีกครั้ง";
-          }
-        }
-      } else {
-        errorMessage = "ระบบขัดข้อง ไม่ได้รับข้อมูลตอบกลับที่ถูกต้อง";
+        if (response['success'].toString() == 'true') isSuccess = true;
       }
 
       if (!mounted) return;
 
       if (isSuccess) {
         setState(() => _isLoading = false);
-
-        // Show Consent Modal
         final bool? isAccepted = await showModalBottomSheet<bool>(
           context: context,
           isScrollControlled: true,
           isDismissible: false,
-          enableDrag: false,
-          backgroundColor: Colors.transparent,
           builder: (context) => const ConsentModalWidget(),
         );
 
         if (isAccepted == true && mounted) {
+          await _storageService.saveCredentials(code, id, _isRememberMe);
+          await _storageService.updateLastActive();
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => ListView_Choice(username: code)),
           );
         }
       } else {
-        _showErrorDialog(errorMessage);
+        _showErrorDialog("รหัสโควต้าหรือรหัสผ่านไม่ถูกต้อง");
         setState(() => _isLoading = false);
       }
-
     } catch (e) {
-      debugPrint("Error: $e");
       if (mounted) {
-        _showErrorDialog("เกิดข้อผิดพลาดในการเชื่อมต่อ (Connection Error)");
+        _showErrorDialog("เกิดข้อผิดพลาดในการเชื่อมต่อ");
         setState(() => _isLoading = false);
       }
     }
   }
 
   static const platform = MethodChannel('com.kisugar.app/launcher');
-
   Future<void> _launchFacebook() async {
     try {
-      await platform.invokeMethod('openUrl', {
-        'url': 'https://www.facebook.com/kisugargroup'
-      });
-    } on PlatformException catch (e) {
-      debugPrint("Error: '${e.message}'.");
-    }
+      await platform.invokeMethod('openUrl', {'url': 'https://www.facebook.com/kisugargroup'});
+    } on PlatformException catch (e) { debugPrint(e.message); }
   }
 
   @override
@@ -247,7 +248,6 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // --- Header ---
             Stack(
               alignment: Alignment.center,
               children: [
@@ -256,11 +256,7 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
                   child: Container(
                     height: 320,
                     decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFFE13E53), Color(0xFFFF6B6B)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      gradient: LinearGradient(colors: [Color(0xFFE13E53), Color(0xFFFF6B6B)]),
                     ),
                   ),
                 ),
@@ -270,21 +266,17 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
                     opacity: _fadeAnim,
                     child: Column(
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 15, offset: Offset(0, 5))]
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20.0),
-                            child: Image.asset('assets/images/logo-KI.png', width: 120, height: 120, fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => Container(width: 120, height: 120, color: Colors.white, child: const Icon(Icons.image_not_supported)),
-                            ),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(30),
+                          child: Image.asset(
+                            'assets/images/logo-KI.png',
+                            width: 120,
+                            height: 120,
+                            fit: BoxFit.cover,
                           ),
                         ),
                         const SizedBox(height: 15),
-                        const Text("KI SUGAR", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)),
-                        const Text("ยินดีต้อนรับ", style: TextStyle(color: Colors.white70, fontSize: 16)),
+                        const Text("KI SUGAR", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -297,94 +289,37 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
                 opacity: _fadeAnim,
                 child: Column(
                   children: [
-                    const Text(
-                      "เข้าสู่ระบบ",
-                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFFE13E53)),
-                    ),
+                    const Text("เข้าสู่ระบบ", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFFE13E53))),
                     const SizedBox(height: 30),
-
-                    _buildTextField(
-                      controller: _quotaCodeController,
-                      label: 'รหัสโควต้า',
-                      icon: Icons.person_outline,
-                      errorText: _quotaErrorText,
-                      maxLength: 6,
-                    ),
+                    _buildTextField(controller: _quotaCodeController, label: 'รหัสโควต้า', icon: Icons.person_outline, maxLength: 6),
                     const SizedBox(height: 20),
                     _buildTextField(
                       controller: _idCardController,
                       label: 'รหัสผ่าน',
                       icon: Icons.lock_outline,
-                      errorText: _idCardErrorText,
                       isPassword: true,
                       obscureText: _isObscure,
-                      maxLength: 6,
                       onToggleVisibility: () => setState(() => _isObscure = !_isObscure),
                     ),
-
                     const SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Row(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Transform.scale(
-                              scale: 1.1,
-                              child: Checkbox(
-                                value: _isRememberMe,
-                                activeColor: const Color(0xFFE13E53),
-                                checkColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                                side: WidgetStateBorderSide.resolveWith(
-                                      (states) => BorderSide(
-                                    width: 1.5,
-                                    color: _isRememberMe ? const Color(0xFFE13E53) : Colors.grey.shade400,
-                                  ),
-                                ),
-                                onChanged: (bool? value) {
-                                  setState(() {
-                                    _isRememberMe = value ?? false;
-                                  });
-                                },
-                              ),
+                            Checkbox(
+                              value: _isRememberMe,
+                              onChanged: (v) => setState(() => _isRememberMe = v ?? false),
+                              activeColor: const Color(0xFFE13E53),
                             ),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _isRememberMe = !_isRememberMe;
-                                });
-                              },
-                              child: AnimatedDefaultTextStyle(
-                                duration: const Duration(milliseconds: 200),
-                                style: TextStyle(
-                                  fontFamily: 'Prompt',
-                                  fontSize: 14,
-                                  fontWeight: _isRememberMe ? FontWeight.w600 : FontWeight.normal,
-                                  color: _isRememberMe ? const Color(0xFFE13E53) : Colors.grey.shade600,
-                                ),
-                                child: const Text("จดจำรหัสผ่าน"),
-                              ),
-                            ),
+                            const Text("จดจำรหัสผ่าน"),
                           ],
                         ),
                         TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const Resetpasswordpage()),
-                            );
-                          },
-                          child: const Text(
-                            "ลืมรหัสผ่าน?",
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
+                            onPressed: () {
+
+                        },
+                            child: const Text("ลืมรหัสผ่าน?", style: TextStyle(color: Colors.grey))),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -393,47 +328,12 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
                       height: 55,
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _handleLoginButtonPress,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE13E53),
-                          disabledBackgroundColor: const Color(0xFFE13E53).withOpacity(0.6),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                          elevation: 5,
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                        )
-                            : const Text('เข้าสู่ระบบ', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE13E53), shape: const StadiumBorder()),
+                        child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('เข้าสู่ระบบ', style: TextStyle(color: Colors.white, fontSize: 18)),
                       ),
                     ),
                     const SizedBox(height: 30),
-                    Row(
-                      children: [
-                        Expanded(child: Divider(color: Colors.grey[300])),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Text("ติดตามข่าวสาร", style: TextStyle(color: Colors.grey[500], fontSize: 12)),
-                        ),
-                        Expanded(child: Divider(color: Colors.grey[300])),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildSocialButton(
-                            icon: Icons.facebook,
-                            color: const Color(0xFF1877F2),
-                            onTap: () async {
-                              _launchFacebook();
-                            }
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 30),
+                    _buildSocialButton(icon: Icons.facebook, color: const Color(0xFF1877F2), onTap: _launchFacebook),
                   ],
                 ),
               ),
@@ -443,8 +343,6 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
       ),
     );
   }
-
-  // --- Widget Helper Methods (เหมือนเดิม) ---
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -531,25 +429,101 @@ class HeaderClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
-// --- ส่วนประกอบ UI ที่ขาดหายไป (วางต่อท้ายไฟล์ได้เลย) ---
-
 class ConsentModalWidget extends StatelessWidget {
   const ConsentModalWidget({Key? key}) : super(key: key);
 
+  void _showRefusalWarning(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.rectangle,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: const [
+              BoxShadow(color: Colors.black26, blurRadius: 12, offset: Offset(0, 10)),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.report_problem_rounded,
+                  color: Color(0xFFE13E53),
+                  size: 48,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'สิทธิ์การเข้าถึงข้อมูล',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF333333),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'หากท่านไม่กดยอมรับเงื่อนไข ท่านจะไม่สามารถเข้าใช้งานแอปพลิเคชันได้ เนื่องจากข้อมูลจำเป็นต่อการคำนวณรายได้และประวัติการส่งอ้อยของท่าน',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                  height: 1.6,
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE13E53),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'รับทราบและดำเนินการต่อ',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // กำหนดความสูง Modal ที่ 85% ของหน้าจอ
-    final double height = MediaQuery.of(context).size.height * 0.85;
-
     return Container(
-      height: height,
+      height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         children: [
-          // Header
           const Padding(
             padding: EdgeInsets.all(24.0),
             child: Text(
@@ -558,18 +532,13 @@ class ConsentModalWidget extends StatelessWidget {
             ),
           ),
           const Divider(height: 1),
-
-          // Scrollable Content
           const Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.all(24.0),
               child: CategorizedConsentList(),
             ),
           ),
-
           const Divider(height: 1),
-
-          // Buttons
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -577,7 +546,7 @@ class ConsentModalWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context, false),
+                      onPressed: () => _showRefusalWarning(context),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         side: const BorderSide(color: Colors.grey),
@@ -593,7 +562,6 @@ class ConsentModalWidget extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: const Color(0xFFE13E53),
-                        elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       child: const Text('ยอมรับและดำเนินการต่อ',
@@ -611,7 +579,7 @@ class ConsentModalWidget extends StatelessWidget {
 }
 
 class CategorizedConsentList extends StatelessWidget {
-  const CategorizedConsentList({Key? key}) : super(key: key);
+  const CategorizedConsentList({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -619,11 +587,10 @@ class CategorizedConsentList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'เพื่อให้ท่านได้รับรายงานรายได้และประวัติการขนส่งอ้อยที่ถูกต้อง \nทางเราขออนุญาตเข้าถึงข้อมูลโปรไฟล์เพื่อใช้ในการยืนยันตัวตนและแสดงผลข้อมูลของท่าน :',
-          style: TextStyle(fontSize: 15, color: Colors.black54),
+          'เพื่อให้ท่านได้รับรายงานรายได้และประวัติการขนส่งอ้อยที่ถูกต้อง ทางเราขออนุญาตเข้าถึงข้อมูลโปรไฟล์เพื่อใช้ในการยืนยันตัวตนและแสดงผลข้อมูลของท่าน :',
+          style: TextStyle(fontSize: 12, color: Colors.black54),
         ),
         SizedBox(height: 16),
-
         ConsentGroupCard(
           title: 'ข้อมูลยืนยันตัวตน',
           icon: Icons.badge_outlined,
@@ -633,7 +600,6 @@ class CategorizedConsentList extends StatelessWidget {
             'ข้อมูลการติดต่อ',
           ],
         ),
-
         ConsentGroupCard(
           title: 'ข้อมูลแปลงเกษตร',
           icon: Icons.landscape_outlined,
@@ -691,17 +657,9 @@ class ConsentGroupCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
         children: [
-          // Header Section
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
@@ -714,17 +672,11 @@ class ConsentGroupCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Text(
                   title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: color.withOpacity(0.8),
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color.withOpacity(0.8)),
                 ),
               ],
             ),
           ),
-
-          // Items List Section
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -739,18 +691,10 @@ class ConsentGroupCard extends StatelessWidget {
                         margin: const EdgeInsets.only(top: 6),
                         width: 6,
                         height: 6,
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.5),
-                          shape: BoxShape.circle,
-                        ),
+                        decoration: BoxDecoration(color: color.withOpacity(0.5), shape: BoxShape.circle),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          item,
-                          style: const TextStyle(fontSize: 14, height: 1.4, color: Colors.black87),
-                        ),
-                      ),
+                      Expanded(child: Text(item, style: const TextStyle(fontSize: 14))),
                     ],
                   ),
                 );

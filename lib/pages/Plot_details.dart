@@ -48,12 +48,7 @@ class PremiumPlotPainter extends CustomPainter {
     // วาดสีพื้นและเส้นขอบ
     canvas.drawPath(path, paintFill);
     canvas.drawPath(path, paintStroke);
-
-    // วาดจุดหมุด (Markers) ตามมุม
     final markerPaint = Paint()..color = const Color(0xFFD32F2F);
-    // (คำนวณตำแหน่งจุดหมุดคร่าวๆ เพื่อความสวยงาม)
-    // ในการใช้งานจริงอาจไม่ต้องวาดจุดก็ได้ครับ
-
     canvas.restore();
   }
 

@@ -30,70 +30,6 @@ class CaneData {
   }
 }
 
-/*class QueueData {
-  final String title;
-  final int round;
-  final int queue;
-  final int currentQueue;
-  final int totalQueue;
-  final int missedQueue;
-  final int missedUntil;
-  final String timeAgo;
-
-  const QueueData({
-    required this.title,
-    required this.round,
-    required this.queue,
-    required this.currentQueue,
-    required this.totalQueue,
-    required this.missedQueue,
-    required this.missedUntil,
-    required this.timeAgo,
-  });
-
-  factory QueueData.fromJson(Map<String, dynamic> json) {
-    return QueueData(
-      title: json['Title'] ?? '',
-      round: (json['Round'] as num?)?.toInt() ?? 0,
-      queue: (json['Queue'] as num?)?.toInt() ?? 0,
-      currentQueue: (json['CurrentQueue'] as num?)?.toInt() ?? 0,
-      totalQueue: (json['totalQueue'] as num?)?.toInt() ?? 0,
-      missedQueue: (json['missedQueue'] as num?)?.toInt() ?? 0,
-      missedUntil: (json['missedUntil'] as num?)?.toInt() ?? 0,
-      timeAgo: json['time_value'] ?? '0:00',
-    );
-  }
-}*/
-
-/*class UserProfileData {
-  final String fullName;
-  final String email;
-  final String phoneNumber;
-  final String address;
-  final String registerDate;
-  final String profileImageUrl;
-
-  const UserProfileData({
-    required this.fullName,
-    required this.email,
-    required this.phoneNumber,
-    required this.address,
-    required this.registerDate,
-    this.profileImageUrl = "",
-  });
-
-  factory UserProfileData.fromJson(Map<String, dynamic> json) {
-    return UserProfileData(
-      fullName: json['ชาวไร่']?.toString() ?? 'ไม่ระบุชื่อ',
-      email: json['email'] ?.toString() ?? 'ไม่มีข้อมูล',
-      phoneNumber: json['เบอร์โทร'] ?.toString() ?? 'ไม่พบเบอร์โทร',
-      address: json['ที่อยู่'] ?.toString() ?? 'ไม่มีข้อมูล',
-      registerDate: json['วันที่ลงทะเบียน'] ?.toString() ?? 'ไม่มีข้อมูล',
-      profileImageUrl: json['image_url'] ?.toString() ?? '-',
-    );
-  }
-}*/
-
 class PromotionData {
   final DateTime? dateEff;
   final String itemType;
@@ -133,6 +69,44 @@ class CaneYear {
     return CaneYear(
       noYear: json['NoYear']?.toString() ?? '',
       yearNum: json['YearNum']?.toString() ?? '',
+    );
+  }
+}
+
+class RobshowData {
+  final int robCarType;
+  final String carTypeName;
+  final int robNum;
+  final int robStartQ;
+  final int robEndQ;
+  final DateTime? robDat;
+  final String robTime;
+
+  RobshowData({
+    required this.robCarType,
+    required this.carTypeName,
+    required this.robNum,
+    required this.robStartQ,
+    required this.robEndQ,
+    this.robDat,
+    required this.robTime,
+  });
+
+  factory RobshowData.fromJson(Map<String, dynamic> json) {
+    String rawDat = json['RobDat']?.toString() ?? '';
+    String extractedTime = '';
+    if (rawDat.contains('T')) {
+      extractedTime = rawDat.split('T').last;
+    }
+
+    return RobshowData(
+      robCarType: json['RobCarType'] ?? 0,
+      carTypeName: json['CartypeName'] ?? '',
+      robNum: json['RobNum'] ?? 0,
+      robStartQ: json['RobStartQ'] ?? 0,
+      robEndQ: json['RobEndQ'] ?? 0,
+      robDat: DateTime.tryParse(rawDat),
+      robTime: extractedTime,
     );
   }
 }
