@@ -46,6 +46,9 @@ class _MyAppState extends State<MyApp> {
     final data = await _storageService.getCredentials();
     final lastActive = await _storageService.getLastActive();
 
+    print("DEBUG: isRemember = ${data['isRemember']}");
+    print("DEBUG: userData exists = ${data['userData'] != null}");
+
     if (mounted) {
       setState(() {
         bool isSessionValid = false;
@@ -64,7 +67,7 @@ class _MyAppState extends State<MyApp> {
         if (data['isRemember'] == 'true' &&
             data['quota'] != null &&
             isSessionValid) {
-          _nextScreen = ListView_Choice(username: data['quota']!);
+          _nextScreen = ListView_Choice(username: data['quota']!, dataUser: data['userData']);
         } else {
           _nextScreen = LoginPage(sessionExpired: _isExpired);
 

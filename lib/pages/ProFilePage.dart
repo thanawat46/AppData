@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'Login.dart';
 import '../services/auth_storage_service.dart';
 
 class Profilepage extends StatefulWidget {
   final bool showBackButton;
-  final String username;
+  final dynamic dataUser;
 
   const Profilepage({
     super.key,
     this.showBackButton = true,
-    required this.username,
+    required this.dataUser,
   });
 
   @override
@@ -20,6 +21,17 @@ class _ProfilepageState extends State<Profilepage> {
   final Color primaryRed = const Color(0xFFE13E53);
   final Color secondaryRed = const Color(0xFFFF6B6B);
   final Color bgSoft = const Color(0xFFF5F7FA);
+
+  // ฟังก์ชันแปลงวันที่ SysReg
+  String _formatDate(String? isoDate) {
+    if (isoDate == null || isoDate.isEmpty) return "-";
+    try {
+      DateTime dt = DateTime.parse(isoDate);
+      return DateFormat('dd/MM/yyyy').format(dt);
+    } catch (e) {
+      return isoDate;
+    }
+  }
 
   Widget _buildGlassButton({required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
@@ -37,6 +49,27 @@ class _ProfilepageState extends State<Profilepage> {
 
   @override
   Widget build(BuildContext context) {
+    String fullName = "ไม่พบข้อมูล";
+    String email = "-";
+    String address = "ไม่พบข้อมูลที่อยู่";
+    String registerDate = "-";
+
+    try {
+      if (widget.dataUser != null &&
+          widget.dataUser['data'] != null &&
+          (widget.dataUser['data'] as List).isNotEmpty) {
+
+        final user = widget.dataUser['data'][0];
+        fullName = user['FullName'] ?? "ไม่พบชื่อผู้ใช้งาน";
+        email = (user['Email'] != null && user['Email'].toString().trim().isNotEmpty)
+            ? user['Email'].toString() : "-";
+        address = user['Address'] ?? "-";
+        registerDate = _formatDate(user['SysReg']); // ดึงวันที่ลงทะเบียน
+      }
+    } catch (e) {
+      debugPrint("Error parsing dataUser: $e");
+    }
+
     return Scaffold(
       backgroundColor: bgSoft,
       extendBodyBehindAppBar: true,
@@ -55,15 +88,12 @@ class _ProfilepageState extends State<Profilepage> {
           ),
         )
             : null,
-        automaticallyImplyLeading: false,
-        title: const Text(
-          'โปรไฟล์',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
-        ),
+        title: const Text('โปรไฟล์', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // Header Section
             Stack(
               alignment: Alignment.center,
               clipBehavior: Clip.none,
@@ -71,55 +101,29 @@ class _ProfilepageState extends State<Profilepage> {
                 Container(
                   height: 260,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [primaryRed, secondaryRed],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    gradient: LinearGradient(colors: [primaryRed, secondaryRed]),
                     borderRadius: const BorderRadius.vertical(bottom: Radius.circular(40)),
                   ),
                 ),
                 Positioned(
                   bottom: -60,
-                  child: Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 10)),
-                          ],
-                        ),
-                        child: CircleAvatar(
-                          radius: 70,
-                          backgroundColor: Colors.grey.shade100,
-                          child: Icon(Icons.person, size: 80, color: Colors.grey.shade400),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: primaryRed,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
-                        ),
-                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
-                      ),
-                    ],
+                  child: CircleAvatar(
+                    radius: 70,
+                    backgroundColor: Colors.white,
+                    child: CircleAvatar(
+                      radius: 66,
+                      backgroundColor: Colors.grey.shade100,
+                      child: Icon(Icons.person, size: 80, color: Colors.grey.shade400),
+                    ),
                   ),
                 ),
               ],
             ),
-
             const SizedBox(height: 80),
-            const Text(
-              "นาย ธนวัฒน์ หนองงู",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
-            ),
+            Text(fullName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 30),
+
+            // Info Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
@@ -127,81 +131,39 @@ class _ProfilepageState extends State<Profilepage> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 5)),
-                  ],
                 ),
                 child: Column(
                   children: [
-                    _buildProfileItem(Icons.email_outlined, "อีเมล", "thanawat@rmuit.ac.th"),
-                    const Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Divider(height: 1)),
+                    _buildProfileItem(Icons.email_outlined, "อีเมล", email),
+                    const Divider(height: 1, indent: 20, endIndent: 20),
                     _buildProfileItem(Icons.phone_outlined, "เบอร์โทรศัพท์", "081-234-5678"),
-                    const Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Divider(height: 1)),
-                    _buildProfileItem(Icons.location_on_outlined, "ที่อยู่", "บ.หนองบัวกลาง ต.จักราช อ.จักราช จ.นครราชสีมา"),
-                    const Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Divider(height: 1)),
-                    _buildProfileItem(Icons.calendar_today_rounded, "วันที่ลงทะเบียน", "13/11/2567"),
+                    const Divider(height: 1, indent: 20, endIndent: 20),
+                    _buildProfileItem(Icons.location_on_outlined, "ที่อยู่", address),
+                    const Divider(height: 1, indent: 20, endIndent: 20),
+                    _buildProfileItem(Icons.calendar_today_rounded, "วันที่ลงทะเบียน", registerDate),
                   ],
                 ),
               ),
             ),
 
             const SizedBox(height: 40),
+
+            // Logout Button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: ElevatedButton(
-                  onPressed: () {
-                    final AuthStorageService storageService = AuthStorageService();
-
-                    showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                          title: const Text("ยืนยันการออก", style: TextStyle(fontWeight: FontWeight.bold)),
-                          content: const Text("คุณต้องการออกจากระบบใช่หรือไม่?\nข้อมูลการจดจำรหัสผ่านจะถูกล้างออก"),
-                          actions: [
-                            TextButton(
-                                onPressed: () => Navigator.pop(ctx),
-                                child: const Text("ยกเลิก", style: TextStyle(color: Colors.grey))
-                            ),
-                            TextButton(
-                                onPressed: () async {
-                                  Navigator.pop(ctx);
-                                  await storageService.saveCredentials('', '', false);
-                                  if (context.mounted) {
-                                    Navigator.pushAndRemoveUntil(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => const LoginPage()),
-                                          (Route<dynamic> route) => false,
-                                    );
-                                  }
-                                },
-                                child: Text("ออก", style: TextStyle(color: primaryRed, fontWeight: FontWeight.bold))
-                            ),
-                          ],
-                        )
-                    );
-                  },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
+              child: OutlinedButton.icon(
+                onPressed: () => _handleLogout(context),
+                icon: const Icon(Icons.logout_rounded),
+                label: const Text('ออกจากระบบ'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
                   foregroundColor: primaryRed,
-                  elevation: 0,
                   side: BorderSide(color: primaryRed.withOpacity(0.5)),
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.logout_rounded, color: primaryRed),
-                    const SizedBox(width: 10),
-                    const Text('ออกจากระบบ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  ],
+                  shape: const StadiumBorder(),
                 ),
               ),
             ),
             const SizedBox(height: 40),
-
-            // Footer Info
             Column(
               children: [
                 Row(
@@ -209,22 +171,15 @@ class _ProfilepageState extends State<Profilepage> {
                   children: [
                     Icon(Icons.code, size: 14, color: Colors.grey[400]),
                     const SizedBox(width: 5),
-                    Text(
-                        "Designed & Developed by",
-                        style: TextStyle(color: Colors.grey[500], fontSize: 11)
-                    ),
+                    Text("Designed & Developed by", style: TextStyle(color: Colors.grey[500], fontSize: 11)),
                   ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                        "Thanawat No & Teerut Fa",
-                        style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold
-                        )
+                      "Thanawat No & Teerut Fa",
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -237,28 +192,40 @@ class _ProfilepageState extends State<Profilepage> {
     );
   }
 
+  void _handleLogout(BuildContext context) {
+    final AuthStorageService storageService = AuthStorageService();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("ยืนยันการออก"),
+        content: const Text("คุณต้องการออกจากระบบใช่หรือไม่?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("ยกเลิก")),
+          TextButton(
+            onPressed: () async {
+              await storageService.saveCredentials('', '', false);
+              if (context.mounted) Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const LoginPage()), (r) => false);
+            },
+            child: Text("ออก", style: TextStyle(color: primaryRed)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildProfileItem(IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: primaryRed.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: primaryRed, size: 22),
-          ),
+          Icon(icon, color: primaryRed, size: 22),
           const SizedBox(width: 15),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[500], fontWeight: FontWeight.w500)),
-                const SizedBox(height: 2),
-                Text(value, style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w600)),
+                Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
               ],
             ),
           ),

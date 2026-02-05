@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import '../models/data_model.dart';
 import '../utils/smart_resource.dart';
 
@@ -78,6 +79,22 @@ class CaneRepository {
     }
   }
 
+  Future<bool> updateMemberNotChangePass(String memberId) async {
+    try {
+      final response = await _dio.put('/MemberNotFirstSign/$memberId');
+
+      if (response.statusCode == 200) {
+        return response.data['success'] == true;
+      }
+
+      return false;
+    } catch (e) {
+      debugPrint("❌ API Toggle Failed: $e");
+      _handleError(e);
+      return false;
+    }
+  }
+
   void _handleError(Object e) {
     if (e is DioException) {
       if (CancelToken.isCancel(e)) return;
@@ -113,3 +130,4 @@ class AuthService {
     }
   }
 }
+

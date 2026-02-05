@@ -17,9 +17,11 @@ class AppColors {
 
 class ListView_Choice extends StatefulWidget {
   final String username;
+  final dynamic dataUser;
   const ListView_Choice({
     super.key,
     required this.username,
+    required this.dataUser,
   });
 
   @override
@@ -31,9 +33,9 @@ class _ListViewChoiceState extends State<ListView_Choice> {
   DateTime? _lastPressedAt;
 
   List<Widget> get _widgetOptions => <Widget>[
-    MainMenu(username: widget.username),
+    MainMenu(username: widget.username, dataUser: widget.dataUser),
     Income_year(showBackButton: false, username: widget.username),
-    Profilepage(showBackButton: false, username: widget.username),
+    Profilepage(showBackButton: false, dataUser: widget.dataUser),
   ];
 
   void _onItemTapped(int index) {
@@ -208,9 +210,11 @@ class _ListViewChoiceState extends State<ListView_Choice> {
 
 class MainMenu extends StatelessWidget {
   final String username;
+  final dynamic dataUser;
   const MainMenu({
     super.key,
     required this.username,
+    required this.dataUser,
   });
 
   @override
@@ -258,12 +262,12 @@ class MainMenu extends StatelessWidget {
                         crossAxisSpacing: 15,
                         children: <Widget>[
                           _buildMenuItem(context, icon: Icons.receipt_long_rounded, label: 'อ้อย(CCS)', color: Colors.orange, page: Income_year(username: username)),
-                          _buildMenuItem(context, icon: Icons.local_shipping_rounded, label: 'คิวรถอ้อย', color: Colors.blue, page: const CheckQueuePage()),
+                          _buildMenuItem(context, icon: Icons.local_shipping_rounded, label: 'คิวรถอ้อย', color: Colors.blue, page: CheckQueuePage(dataUser: dataUser)),
                           _buildMenuItem(context, icon: Icons.map_rounded, label: 'รายการแปลง', color: Colors.grey, isComingSoon: true),
                           _buildMenuItem(context, icon: Icons.support_agent_rounded, label: 'ส่งเสริม', color: Colors.purple, page: Promote_API(username: username)),
                           _buildMenuItem(context, icon: Icons.qr_code_scanner_rounded, label: 'QR Code', color: Colors.grey, isComingSoon: true),
                           _buildMenuItem(context, icon: Icons.newspaper_rounded, label: 'ข่าวสาร', color: Colors.grey, isComingSoon: true),
-                          _buildMenuItem(context, icon: Icons.info_outline_rounded, label: 'Info', color: Colors.teal, page: Profilepage(username: username)),
+                          _buildMenuItem(context, icon: Icons.info_outline_rounded, label: 'Info', color: Colors.teal, page: Profilepage(dataUser: dataUser)),
                           _buildMenuItem(context, icon: Icons.settings_rounded, label: 'ตั้งค่า', color: Colors.green, page: const Settingpage()),
                           _buildLogoutItem(context),
                         ],
@@ -280,6 +284,20 @@ class MainMenu extends StatelessWidget {
   }
 
   Widget _buildHeader() {
+    String displayName = "ไม่พบชื่อผู้ใช้งาน";
+
+    try {
+      if (dataUser != null &&
+          dataUser['data'] != null &&
+          (dataUser['data'] as List).isNotEmpty) {
+        final user = dataUser['data'][0];
+        displayName = user['FullName'] ?? "ไม่ได้ระบุชื่อ";
+      }
+    } catch (e) {
+      debugPrint("Error parsing FullName: $e");
+      displayName = "ข้อมูลผิดพลาด";
+    }
+
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -307,17 +325,20 @@ class MainMenu extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 15),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("ยินดีต้อนรับ",
+                    const Text("ยินดีต้อนรับ",
                         style: TextStyle(fontSize: 16, color: Colors.white70)),
-                    Text("นาย ธีรุตม์ ฝาสันเทียะ",
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white)),
+                    Text(
+                      displayName,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -327,7 +348,6 @@ class MainMenu extends StatelessWidget {
       ),
     );
   }
-
   Widget _buildMenuItem(
       BuildContext context, {
         required IconData icon,

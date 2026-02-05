@@ -25,6 +25,7 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
   bool _isRememberMe = false;
   bool _isLoading = false;
   final AuthStorageService _storageService = AuthStorageService();
+  ///final CaneRepository _caneRepository = CaneRepository();
 
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
@@ -187,6 +188,8 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
     try {
       final String code = _quotaCodeController.text.trim();
       final String id = _idCardController.text.trim();
+
+      // ... (ส่วน Encryption คงเดิม) ...
       Map<String, String> dataMap = {"uxxname": code, "pxxword": id};
       String plainText = jsonEncode(dataMap);
       final key = encrypt.Key.fromUtf8('MySecret1234ABCD');
@@ -207,20 +210,52 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
 
       if (isSuccess) {
         setState(() => _isLoading = false);
-        final bool? isAccepted = await showModalBottomSheet<bool>(
-          context: context,
-          isScrollControlled: true,
-          isDismissible: false,
-          builder: (context) => const ConsentModalWidget(),
-        );
+
+        // 🚀 แก้ไขจุดนี้: ตรวจสอบสถานะ isFirstSign ให้ถูกต้อง
+        bool isFirstSign = true; // ตั้ง Default เป็น true (ให้แสดง Consent ไว้ก่อนเพื่อความปลอดภัย)
+        try {
+          if (response?['data'] != null && (response['data'] as List).isNotEmpty) {
+            var userData = response['data'][0];
+            // เช็คค่าจาก Key 'isFirstSign' โดยตรง
+            var status = userData['isFirstSign'];
+            // ตรวจสอบทั้งกรณีที่เป็น Boolean (true) หรือ String/Int ('1')
+            isFirstSign = (status == true || status.toString() == '1');
+          }
+        } catch (e) {
+          debugPrint("Error checking isFirstSign: $e");
+          isFirstSign = true;
+        }
+
+        bool isAccepted = false;
+
+        // 🛑 ถ้าเป็น First Sign ให้โชว์แผ่นกดยินยอม
+        if (isFirstSign) {
+          final bool? result = await showModalBottomSheet<bool>(
+            context: context,
+            isScrollControlled: true,
+            isDismissible: false,
+            builder: (context) => const ConsentModalWidget(),
+          );
+          isAccepted = result ?? false;
+        } else {
+          // ✅ ถ้าไม่ใช่ (เคยยินยอมแล้ว) ให้ผ่านไปได้เลย
+          isAccepted = true;
+        }
 
         if (isAccepted == true && mounted) {
-          await _storageService.saveCredentials(code, id, _isRememberMe);
+          // ถ้าเป็นครั้งแรก ให้ไปยิง API สลับค่าที่ Server
+          if (isFirstSign) {
+            await _updateMemberStatus(response);
+          }
+
+          await _storageService.saveCredentials(code, id, _isRememberMe, dataUser: response);
           await _storageService.updateLastActive();
 
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => ListView_Choice(username: code)),
+            MaterialPageRoute(
+              builder: (context) => ListView_Choice(username: code, dataUser: response),
+            ),
           );
         }
       } else {
@@ -235,7 +270,26 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
     }
   }
 
-  static const platform = MethodChannel('com.kisugar.app/launcher');
+  Future<void> _updateMemberStatus(dynamic loginResponse) async {
+    try {
+      if (loginResponse != null && loginResponse['data'] != null) {
+
+        final String memberId = loginResponse['data'][0]['CustCode'].toString();
+        final caneRepo = CaneRepository();
+        bool isSuccess = await caneRepo.updateMemberNotChangePass(memberId);
+
+        if (isSuccess) {
+          setState(() {
+            // ใช้เครื่องหมาย ! เพื่อบอกว่าเรามั่นใจว่าไม่ null แล้วแน่นอน
+            loginResponse['data'][0]['isFirstSign'] = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("❌ Error: $e");
+    }
+  }
+
   Future<void> _launchFacebook() async {
     final Uri url = Uri.parse('https://www.facebook.com/kisugargroup');
 

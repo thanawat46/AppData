@@ -5,7 +5,12 @@ import '../repositories/cane_repository.dart';
 
 class CheckQueuePage extends StatefulWidget {
   final String? fullName;
-  const CheckQueuePage({super.key, this.fullName});
+  final dynamic dataUser;
+  const CheckQueuePage({
+    super.key,
+    this.fullName,
+    required this.dataUser,
+  });
 
   @override
   State<CheckQueuePage> createState() => _CheckQueuePageState();
@@ -249,6 +254,21 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
       ]));
 
   Widget _buildCombinedHeader() {
+    String displayName = widget.fullName ?? "ไม่พบชื่อผู้ใช้งาน";
+
+    try {
+      if (widget.fullName == null &&
+          widget.dataUser != null &&
+          widget.dataUser['data'] != null &&
+          (widget.dataUser['data'] as List).isNotEmpty) {
+
+        final user = widget.dataUser['data'][0];
+        displayName = user['FullName'] ?? "ไม่ได้ระบุชื่อ";
+      }
+    } catch (e) {
+      debugPrint("Error parsing Name in CheckQueuePage: $e");
+    }
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -288,11 +308,13 @@ class _CheckQueuePageState extends State<CheckQueuePage> {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const Text("ยินดีต้อนรับ",
                     style: TextStyle(color: Colors.white70, fontSize: 14)),
-                Text(widget.fullName ?? "นาย ธนวัฒน์ หนองงู",
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold)),
+                Text(
+                  displayName,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold),
+                ),
               ])
             ]),
           ),
