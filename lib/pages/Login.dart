@@ -189,7 +189,6 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
       final String code = _quotaCodeController.text.trim();
       final String id = _idCardController.text.trim();
 
-      // ... (ส่วน Encryption คงเดิม) ...
       Map<String, String> dataMap = {"uxxname": code, "pxxword": id};
       String plainText = jsonEncode(dataMap);
       final key = encrypt.Key.fromUtf8('MySecret1234ABCD');
@@ -202,23 +201,22 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
       var response = await authService.loginWithEncryptedData(encryptedResult);
 
       bool isSuccess = false;
-      if (response != null && response is Map) {
-        if (response['success'].toString() == 'true') isSuccess = true;
+      if (response != null && response['success'].toString() == 'true') {
+        isSuccess = true;
       }
 
       if (!mounted) return;
 
       if (isSuccess) {
         setState(() => _isLoading = false);
-
-        // 🚀 แก้ไขจุดนี้: ตรวจสอบสถานะ isFirstSign ให้ถูกต้อง
-        bool isFirstSign = true; // ตั้ง Default เป็น true (ให้แสดง Consent ไว้ก่อนเพื่อความปลอดภัย)
+        bool isFirstSign = true;
         try {
-          if (response?['data'] != null && (response['data'] as List).isNotEmpty) {
+          if (response != null &&
+              response['data'] != null &&
+              (response['data'] as List).isNotEmpty) {
+
             var userData = response['data'][0];
-            // เช็คค่าจาก Key 'isFirstSign' โดยตรง
             var status = userData['isFirstSign'];
-            // ตรวจสอบทั้งกรณีที่เป็น Boolean (true) หรือ String/Int ('1')
             isFirstSign = (status == true || status.toString() == '1');
           }
         } catch (e) {
@@ -227,8 +225,6 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
         }
 
         bool isAccepted = false;
-
-        // 🛑 ถ้าเป็น First Sign ให้โชว์แผ่นกดยินยอม
         if (isFirstSign) {
           final bool? result = await showModalBottomSheet<bool>(
             context: context,
@@ -238,16 +234,13 @@ class _LoginState extends State<LoginPage> with SingleTickerProviderStateMixin {
           );
           isAccepted = result ?? false;
         } else {
-          // ✅ ถ้าไม่ใช่ (เคยยินยอมแล้ว) ให้ผ่านไปได้เลย
           isAccepted = true;
         }
 
         if (isAccepted == true && mounted) {
-          // ถ้าเป็นครั้งแรก ให้ไปยิง API สลับค่าที่ Server
           if (isFirstSign) {
             await _updateMemberStatus(response);
           }
-
           await _storageService.saveCredentials(code, id, _isRememberMe, dataUser: response);
           await _storageService.updateLastActive();
 
